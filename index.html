@@ -56,13 +56,17 @@
     .btn-cnt:active { background: #cbd5e1; }
     .score-val { flex: 1; text-align: center; font-size: 1.2em; font-weight: bold; background: white; border: 1px solid #ccc; border-radius: 6px; padding: 6px 0; }
 
-    /* 特殊イベント・チップ選択タグ（ON/OFF切り替え） */
+    /* 特殊イベント・オリンピック・ペナタグ（ON/OFF切り替え） */
     .event-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
     .btn-tag {
       font-size: 0.72em; font-weight: bold; padding: 4px 6px; border-radius: 4px;
       border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer; margin-top: 0; width: auto; flex: 1 1 auto;
     }
-    .btn-tag.active-plus { background: #dcfce7; color: #166534; border-color: #86efac; } /* ボーナス時 (緑) */
+    .btn-tag.active-gold { background: #fef08a; color: #854d0e; border-color: #eab308; } /* 金 */
+    .btn-tag.active-silver { background: #f1f5f9; color: #334155; border-color: #94a3b8; } /* 銀 */
+    .btn-tag.active-bronze { background: #ffedd5; color: #9a3412; border-color: #fdba74; } /* 銅 */
+    .btn-tag.active-iron { background: #e2e8f0; color: #475569; border-color: #cbd5e1; } /* 鉄 */
+    .btn-tag.active-dia { background: #e0f2fe; color: #0369a1; border-color: #38bdf8; } /* ダイヤ */
     .btn-tag.active-minus { background: #fee2e2; color: #991b1b; border-color: #fca5a5; } /* ペナ時 (赤) */
 
     /* 打順バッジ */
@@ -168,9 +172,9 @@
       <div style="font-size:0.8em; color:#854d0e; margin-top:4px;" id="chip-carry-info"></div>
     </div>
 
-    <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数と該当のイベント(ペナ/ボーナス)を選択してください</p>
+    <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数と該当のボーナス(オリンピック)/ペナルティを選択してください</p>
 
-    <!-- 打数カウンタ＆イベント選択タグ -->
+    <!-- 打数カウンタ＆オリンピック・ペナタグ選択 -->
     <div class="grid">
       <!-- 1番打者 -->
       <div class="player-card team-a-box">
@@ -182,11 +186,13 @@
           <button class="btn-cnt" onclick="changeScore(0, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-0-putt1" onclick="toggleTag(0, 'putt1', 'plus')">1パット(+5)</button>
-          <button class="btn-tag" id="tag-0-birdie" onclick="toggleTag(0, 'birdie', 'plus')">バーディ(+5)</button>
-          <button class="btn-tag" id="tag-0-chipin" onclick="toggleTag(0, 'chipin', 'plus')">チップイン(+5)</button>
-          <button class="btn-tag" id="tag-0-putt3" onclick="toggleTag(0, 'putt3', 'minus')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-0-bunker" onclick="toggleTag(0, 'bunker', 'minus')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-0-gold" onclick="toggleOlympic(0, 'gold')">金(+8)</button>
+          <button class="btn-tag" id="tag-0-silver" onclick="toggleOlympic(0, 'silver')">銀(+5)</button>
+          <button class="btn-tag" id="tag-0-bronze" onclick="toggleOlympic(0, 'bronze')">銅(+3)</button>
+          <button class="btn-tag" id="tag-0-iron" onclick="toggleOlympic(0, 'iron')">鉄(+1)</button>
+          <button class="btn-tag" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')">ダイヤ(+10)</button>
+          <button class="btn-tag" id="tag-0-putt3" onclick="toggleTag(0, 'putt3')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-0-bunker" onclick="toggleTag(0, 'bunker')">砂遊び(-5)</button>
         </div>
       </div>
       
@@ -200,11 +206,13 @@
           <button class="btn-cnt" onclick="changeScore(1, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-1-putt1" onclick="toggleTag(1, 'putt1', 'plus')">1パット(+5)</button>
-          <button class="btn-tag" id="tag-1-birdie" onclick="toggleTag(1, 'birdie', 'plus')">バーディ(+5)</button>
-          <button class="btn-tag" id="tag-1-chipin" onclick="toggleTag(1, 'chipin', 'plus')">チップイン(+5)</button>
-          <button class="btn-tag" id="tag-1-putt3" onclick="toggleTag(1, 'putt3', 'minus')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-1-bunker" onclick="toggleTag(1, 'bunker', 'minus')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-1-gold" onclick="toggleOlympic(1, 'gold')">金(+8)</button>
+          <button class="btn-tag" id="tag-1-silver" onclick="toggleOlympic(1, 'silver')">銀(+5)</button>
+          <button class="btn-tag" id="tag-1-bronze" onclick="toggleOlympic(1, 'bronze')">銅(+3)</button>
+          <button class="btn-tag" id="tag-1-iron" onclick="toggleOlympic(1, 'iron')">鉄(+1)</button>
+          <button class="btn-tag" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')">ダイヤ(+10)</button>
+          <button class="btn-tag" id="tag-1-putt3" onclick="toggleTag(1, 'putt3')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-1-bunker" onclick="toggleTag(1, 'bunker')">砂遊び(-5)</button>
         </div>
       </div>
       
@@ -218,11 +226,13 @@
           <button class="btn-cnt" onclick="changeScore(2, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-2-putt1" onclick="toggleTag(2, 'putt1', 'plus')">1パット(+5)</button>
-          <button class="btn-tag" id="tag-2-birdie" onclick="toggleTag(2, 'birdie', 'plus')">バーディ(+5)</button>
-          <button class="btn-tag" id="tag-2-chipin" onclick="toggleTag(2, 'chipin', 'plus')">チップイン(+5)</button>
-          <button class="btn-tag" id="tag-2-putt3" onclick="toggleTag(2, 'putt3', 'minus')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-2-bunker" onclick="toggleTag(2, 'bunker', 'minus')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-2-gold" onclick="toggleOlympic(2, 'gold')">金(+8)</button>
+          <button class="btn-tag" id="tag-2-silver" onclick="toggleOlympic(2, 'silver')">銀(+5)</button>
+          <button class="btn-tag" id="tag-2-bronze" onclick="toggleOlympic(2, 'bronze')">銅(+3)</button>
+          <button class="btn-tag" id="tag-2-iron" onclick="toggleOlympic(2, 'iron')">鉄(+1)</button>
+          <button class="btn-tag" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')">ダイヤ(+10)</button>
+          <button class="btn-tag" id="tag-2-putt3" onclick="toggleTag(2, 'putt3')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-2-bunker" onclick="toggleTag(2, 'bunker')">砂遊び(-5)</button>
         </div>
       </div>
       
@@ -236,11 +246,13 @@
           <button class="btn-cnt" onclick="changeScore(3, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-3-putt1" onclick="toggleTag(3, 'putt1', 'plus')">1パット(+5)</button>
-          <button class="btn-tag" id="tag-3-birdie" onclick="toggleTag(3, 'birdie', 'plus')">バーディ(+5)</button>
-          <button class="btn-tag" id="tag-3-chipin" onclick="toggleTag(3, 'chipin', 'plus')">チップイン(+5)</button>
-          <button class="btn-tag" id="tag-3-putt3" onclick="toggleTag(3, 'putt3', 'minus')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-3-bunker" onclick="toggleTag(3, 'bunker', 'minus')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-3-gold" onclick="toggleOlympic(3, 'gold')">金(+8)</button>
+          <button class="btn-tag" id="tag-3-silver" onclick="toggleOlympic(3, 'silver')">銀(+5)</button>
+          <button class="btn-tag" id="tag-3-bronze" onclick="toggleOlympic(3, 'bronze')">銅(+3)</button>
+          <button class="btn-tag" id="tag-3-iron" onclick="toggleOlympic(3, 'iron')">鉄(+1)</button>
+          <button class="btn-tag" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')">ダイヤ(+10)</button>
+          <button class="btn-tag" id="tag-3-putt3" onclick="toggleTag(3, 'putt3')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-3-bunker" onclick="toggleTag(3, 'bunker')">砂遊び(-5)</button>
         </div>
       </div>
     </div>
@@ -271,12 +283,12 @@
     let currentPar = 4;
     let currentScores = [4, 4, 4, 4];
 
-    // 特殊イベントタグの状態管理
+    // オリンピック (一人1種類選択) & ペナルティ管理
     let playerEvents = [
-      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
-      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
-      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
-      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false }
+      { olympic: null, putt3: false, bunker: false },
+      { olympic: null, putt3: false, bunker: false },
+      { olympic: null, putt3: false, bunker: false },
+      { olympic: null, putt3: false, bunker: false }
     ];
 
     let nearPinCarry = 0;
@@ -406,36 +418,48 @@
     function changeScore(index, delta) {
       currentScores[index] += delta;
       if (currentScores[index] < 1) currentScores[index] = 1;
-
-      // 打数がPAR未満になった場合バーディタグを自動判定
-      if (currentScores[index] < currentPar) {
-        playerEvents[index].birdie = true;
-      } else {
-        playerEvents[index].birdie = false;
-      }
-
       updateScoreDisplay();
+    }
+
+    // オリンピック選択（同じタイプはトグル、別タイプは切り替え）
+    function toggleOlympic(index, type) {
+      if (playerEvents[index].olympic === type) {
+        playerEvents[index].olympic = null;
+      } else {
+        playerEvents[index].olympic = type;
+      }
       renderTagUI();
     }
 
-    function toggleTag(index, key, type) {
+    // ペナルティタグ選択
+    function toggleTag(index, key) {
       playerEvents[index][key] = !playerEvents[index][key];
       renderTagUI();
     }
 
     function renderTagUI() {
-      const keys = ['putt1', 'birdie', 'chipin', 'putt3', 'bunker'];
+      const olyKeys = ['gold', 'silver', 'bronze', 'iron', 'dia'];
+      const penKeys = ['putt3', 'bunker'];
+
       for (let i = 0; i < 4; i++) {
-        keys.forEach(k => {
+        // オリンピックボタン描画
+        olyKeys.forEach(k => {
           const btn = document.getElementById(`tag-${i}-${k}`);
           if (btn) {
-            btn.classList.remove('active-plus', 'active-minus');
+            btn.className = 'btn-tag'; // 初期化
+            if (playerEvents[i].olympic === k) {
+              btn.classList.add(`active-${k}`);
+            }
+          }
+        });
+
+        // ペナルティボタン描画
+        penKeys.forEach(k => {
+          const btn = document.getElementById(`tag-${i}-${k}`);
+          if (btn) {
+            btn.classList.remove('active-minus');
             if (playerEvents[i][k]) {
-              if (['putt1', 'birdie', 'chipin'].includes(k)) {
-                btn.classList.add('active-plus');
-              } else {
-                btn.classList.add('active-minus');
-              }
+              btn.classList.add('active-minus');
             }
           }
         });
@@ -450,10 +474,10 @@
 
     function clearEvents() {
       playerEvents = [
-        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
-        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
-        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
-        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false }
+        { olympic: null, putt3: false, bunker: false },
+        { olympic: null, putt3: false, bunker: false },
+        { olympic: null, putt3: false, bunker: false },
+        { olympic: null, putt3: false, bunker: false }
       ];
       renderTagUI();
     }
@@ -508,12 +532,19 @@
       const rule = document.getElementById('hdcpRule').value;
       const rawScores = [...currentScores];
 
-      // 1. 個別のペナルティ & ボーナス加減算（各イベント ±5P）
+      // 1. オリンピック（ボーナス） & ペナルティ加減算
       for (let i = 0; i < 4; i++) {
         let bonusPenalty = 0;
-        if (playerEvents[i].putt1) bonusPenalty += 5;
-        if (playerEvents[i].birdie) bonusPenalty += 5;
-        if (playerEvents[i].chipin) bonusPenalty += 5;
+
+        // オリンピック計算 (金+8 / 銀+5 / 銅+3 / 鉄+1 / ダイヤ+10)
+        const oly = playerEvents[i].olympic;
+        if (oly === 'gold') bonusPenalty += 8;
+        if (oly === 'silver') bonusPenalty += 5;
+        if (oly === 'bronze') bonusPenalty += 3;
+        if (oly === 'iron') bonusPenalty += 1;
+        if (oly === 'dia') bonusPenalty += 10;
+
+        // ペナルティ計算 (3パット-5 / 砂遊び-5)
         if (playerEvents[i].putt3) bonusPenalty -= 5;
         if (playerEvents[i].bunker) bonusPenalty -= 5;
 
@@ -554,7 +585,7 @@
       const scoreA = buildTeamScore(finalScores[0], finalScores[3], currentPar);
       const scoreB = buildTeamScore(finalScores[1], finalScores[2], currentPar);
 
-      // 5. 勝敗・ポイント計算（ラスベガス）
+      // 5. 勝敗・ポイント計算（ラスベガス / バーディ時自動逆転計算含む）
       let diff = Math.abs(scoreA - scoreB);
 
       if (scoreA < scoreB) {
@@ -608,6 +639,7 @@
       });
     }
 
+    // ラスベガス合成ロジック（バーディ時逆転計算自動化）
     function buildTeamScore(s1, s2, par) {
       let best = Math.min(s1, s2);
       let worst = Math.max(s1, s2);
