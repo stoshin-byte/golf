@@ -193,6 +193,8 @@
           <button class="btn-tag" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')">ダイヤ(+10)</button>
           <button class="btn-tag" id="tag-0-putt3" onclick="toggleTag(0, 'putt3')">3パット(-5)</button>
           <button class="btn-tag" id="tag-0-bunker" onclick="toggleTag(0, 'bunker')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-0-pond" onclick="toggleTag(0, 'pond')">池ポチャ(-5)</button>
+          <button class="btn-tag" id="tag-0-oneP" onclick="toggleTag(0, 'oneP')">ワンペナ(-5)</button>
         </div>
       </div>
       
@@ -213,6 +215,8 @@
           <button class="btn-tag" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')">ダイヤ(+10)</button>
           <button class="btn-tag" id="tag-1-putt3" onclick="toggleTag(1, 'putt3')">3パット(-5)</button>
           <button class="btn-tag" id="tag-1-bunker" onclick="toggleTag(1, 'bunker')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-1-pond" onclick="toggleTag(1, 'pond')">池ポチャ(-5)</button>
+          <button class="btn-tag" id="tag-1-oneP" onclick="toggleTag(1, 'oneP')">ワンペナ(-5)</button>
         </div>
       </div>
       
@@ -233,6 +237,8 @@
           <button class="btn-tag" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')">ダイヤ(+10)</button>
           <button class="btn-tag" id="tag-2-putt3" onclick="toggleTag(2, 'putt3')">3パット(-5)</button>
           <button class="btn-tag" id="tag-2-bunker" onclick="toggleTag(2, 'bunker')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-2-pond" onclick="toggleTag(2, 'pond')">池ポチャ(-5)</button>
+          <button class="btn-tag" id="tag-2-oneP" onclick="toggleTag(2, 'oneP')">ワンペナ(-5)</button>
         </div>
       </div>
       
@@ -253,6 +259,8 @@
           <button class="btn-tag" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')">ダイヤ(+10)</button>
           <button class="btn-tag" id="tag-3-putt3" onclick="toggleTag(3, 'putt3')">3パット(-5)</button>
           <button class="btn-tag" id="tag-3-bunker" onclick="toggleTag(3, 'bunker')">砂遊び(-5)</button>
+          <button class="btn-tag" id="tag-3-pond" onclick="toggleTag(3, 'pond')">池ポチャ(-5)</button>
+          <button class="btn-tag" id="tag-3-oneP" onclick="toggleTag(3, 'oneP')">ワンペナ(-5)</button>
         </div>
       </div>
     </div>
@@ -285,10 +293,10 @@
 
     // オリンピック (一人1種類選択) & ペナルティ管理
     let playerEvents = [
-      { olympic: null, putt3: false, bunker: false },
-      { olympic: null, putt3: false, bunker: false },
-      { olympic: null, putt3: false, bunker: false },
-      { olympic: null, putt3: false, bunker: false }
+      { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
+      { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
+      { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
+      { olympic: null, putt3: false, bunker: false, pond: false, oneP: false }
     ];
 
     let nearPinCarry = 0;
@@ -421,7 +429,7 @@
       updateScoreDisplay();
     }
 
-    // オリンピック選択（同じタイプはトグル、別タイプは切り替え）
+    // オリンピック選択
     function toggleOlympic(index, type) {
       if (playerEvents[index].olympic === type) {
         playerEvents[index].olympic = null;
@@ -439,14 +447,14 @@
 
     function renderTagUI() {
       const olyKeys = ['gold', 'silver', 'bronze', 'iron', 'dia'];
-      const penKeys = ['putt3', 'bunker'];
+      const penKeys = ['putt3', 'bunker', 'pond', 'oneP'];
 
       for (let i = 0; i < 4; i++) {
         // オリンピックボタン描画
         olyKeys.forEach(k => {
           const btn = document.getElementById(`tag-${i}-${k}`);
           if (btn) {
-            btn.className = 'btn-tag'; // 初期化
+            btn.className = 'btn-tag';
             if (playerEvents[i].olympic === k) {
               btn.classList.add(`active-${k}`);
             }
@@ -474,10 +482,10 @@
 
     function clearEvents() {
       playerEvents = [
-        { olympic: null, putt3: false, bunker: false },
-        { olympic: null, putt3: false, bunker: false },
-        { olympic: null, putt3: false, bunker: false },
-        { olympic: null, putt3: false, bunker: false }
+        { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
+        { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
+        { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
+        { olympic: null, putt3: false, bunker: false, pond: false, oneP: false }
       ];
       renderTagUI();
     }
@@ -536,7 +544,7 @@
       for (let i = 0; i < 4; i++) {
         let bonusPenalty = 0;
 
-        // オリンピック計算 (金+8 / 銀+5 / 銅+3 / 鉄+1 / ダイヤ+10)
+        // オリンピック計算
         const oly = playerEvents[i].olympic;
         if (oly === 'gold') bonusPenalty += 8;
         if (oly === 'silver') bonusPenalty += 5;
@@ -544,9 +552,11 @@
         if (oly === 'iron') bonusPenalty += 1;
         if (oly === 'dia') bonusPenalty += 10;
 
-        // ペナルティ計算 (3パット-5 / 砂遊び-5)
+        // ペナルティ計算 (各 -5P)
         if (playerEvents[i].putt3) bonusPenalty -= 5;
         if (playerEvents[i].bunker) bonusPenalty -= 5;
+        if (playerEvents[i].pond) bonusPenalty -= 5;
+        if (playerEvents[i].oneP) bonusPenalty -= 5;
 
         playerOrder[i].points += bonusPenalty;
       }
@@ -585,7 +595,7 @@
       const scoreA = buildTeamScore(finalScores[0], finalScores[3], currentPar);
       const scoreB = buildTeamScore(finalScores[1], finalScores[2], currentPar);
 
-      // 5. 勝敗・ポイント計算（ラスベガス / バーディ時自動逆転計算含む）
+      // 5. 勝敗・ポイント計算
       let diff = Math.abs(scoreA - scoreB);
 
       if (scoreA < scoreB) {
@@ -639,7 +649,6 @@
       });
     }
 
-    // ラスベガス合成ロジック（バーディ時逆転計算自動化）
     function buildTeamScore(s1, s2, par) {
       let best = Math.min(s1, s2);
       let worst = Math.max(s1, s2);
