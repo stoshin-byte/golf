@@ -177,7 +177,7 @@
     <!-- 打数カウンタ＆オリンピック・ペナタグ選択 -->
     <div class="grid">
       <!-- 1番打者 -->
-      <div class="player-card team-a-box">
+      <div class="player-card" id="card-0">
         <div class="order-tag order-tag-1">👑 1番 (オナー)</div>
         <div class="player-name-title" id="lbl-p1">Aさん</div>
         <div class="score-counter">
@@ -199,7 +199,7 @@
       </div>
       
       <!-- 2番打者 -->
-      <div class="player-card team-b-box">
+      <div class="player-card" id="card-1">
         <div class="order-tag order-tag-2">🥈 2番打者</div>
         <div class="player-name-title" id="lbl-p2">Bさん</div>
         <div class="score-counter">
@@ -221,7 +221,7 @@
       </div>
       
       <!-- 3番打者 -->
-      <div class="player-card team-b-box">
+      <div class="player-card" id="card-2">
         <div class="order-tag order-tag-3">🥉 3番打者</div>
         <div class="player-name-title" id="lbl-p3">Cさん</div>
         <div class="score-counter">
@@ -243,7 +243,7 @@
       </div>
       
       <!-- 4番打者 -->
-      <div class="player-card team-a-box">
+      <div class="player-card" id="card-3">
         <div class="order-tag order-tag-4">4️⃣ 4番打者</div>
         <div class="player-name-title" id="lbl-p4">Dさん</div>
         <div class="score-counter">
@@ -291,6 +291,9 @@
     let currentPar = 4;
     let currentScores = [4, 4, 4, 4];
 
+    // キャリーオーバー時のチーム引き継ぎ用 (IDベースでチームAメンバーを固定)
+    let carriedTeamAIds = null;
+
     // オリンピック (一人1種類選択) & ペナルティ管理
     let playerEvents = [
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
@@ -311,6 +314,7 @@
         carryOverPoints,
         nearPinCarry,
         doraConCarry,
+        carriedTeamAIds,
         hdcpRuleSetting: document.getElementById('hdcpRule').value
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -328,6 +332,7 @@
               carryOverPoints = state.carryOverPoints || 0;
               nearPinCarry = state.nearPinCarry || 0;
               doraConCarry = state.doraConCarry || 0;
+              carriedTeamAIds = state.carriedTeamAIds || null;
               if (state.hdcpRuleSetting) {
                 document.getElementById('hdcpRule').value = state.hdcpRuleSetting;
               }
@@ -429,7 +434,6 @@
       updateScoreDisplay();
     }
 
-    // オリンピック選択
     function toggleOlympic(index, type) {
       if (playerEvents[index].olympic === type) {
         playerEvents[index].olympic = null;
@@ -439,7 +443,6 @@
       renderTagUI();
     }
 
-    // ペナルティタグ選択
     function toggleTag(index, key) {
       playerEvents[index][key] = !playerEvents[index][key];
       renderTagUI();
@@ -450,7 +453,6 @@
       const penKeys = ['putt3', 'bunker', 'pond', 'oneP'];
 
       for (let i = 0; i < 4; i++) {
-        // オリンピックボタン描画
         olyKeys.forEach(k => {
           const btn = document.getElementById(`tag-${i}-${k}`);
           if (btn) {
@@ -461,7 +463,6 @@
           }
         });
 
-        // ペナルティボタン描画
         penKeys.forEach(k => {
           const btn = document.getElementById(`tag-${i}-${k}`);
           if (btn) {
@@ -490,6 +491,29 @@
       renderTagUI();
     }
 
+    // 現在のチーム分けを取得 (引き継ぎがある場合は以前のチーム、それ以外は打順1・4 vs 2・3)
+    function getCurrentTeams() {
+      if (carriedTeamAIds) {
+        // 引き継ぎ中: IDが一致するプレイヤーをチームAとする
+        const teamA = [];
+        const teamB = [];
+        playerOrder.forEach((p, idx) => {
+          if (carriedTeamAIds.includes(p.id)) {
+            teamA.push({ player: p, index: idx });
+          } else {
+            teamB.push({ player: p, index: idx });
+          }
+        });
+        return { teamA, teamB };
+      } else {
+        // 通常時: 打順1(idx 0)と4(idx 3)がチームA、打順2(idx 1)と3(idx 2)がチームB
+        return {
+          teamA: [{ player: playerOrder[0], index: 0 }, { player: playerOrder[3], index: 3 }],
+          teamB: [{ player: playerOrder[1], index: 1 }, { player: playerOrder[2], index: 2 }]
+        };
+      }
+    }
+
     function updateHoleUI() {
       document.getElementById('hole-title').innerText = `${currentHole}番ホール`;
       document.getElementById('carry-display').value = `${carryOverPoints} 点`;
@@ -499,9 +523,31 @@
       document.getElementById('lbl-p3').innerText = playerOrder[2].name;
       document.getElementById('lbl-p4').innerText = playerOrder[3].name;
 
-      const pairText = 
-        `<span class="team-badge-a">青ペア: 👑 1番 ${playerOrder[0].name} & 4️⃣ 4番 ${playerOrder[3].name}</span><br>` +
-        `<span class="team-badge-b">オレンジペア: 🥈 2番 ${playerOrder[1].name} & 🥉 3番 ${playerOrder[2].name}</span>`;
+      const { teamA, teamB } = getCurrentTeams();
+
+      // カードの色分け適用
+      for (let i = 0; i < 4; i++) {
+        const card = document.getElementById(`card-${i}`);
+        card.className = 'player-card';
+        if (teamA.some(t => t.index === i)) {
+          card.classList.add('team-a-box');
+        } else {
+          card.classList.add('team-b-box');
+        }
+      }
+
+      // 対戦バッジの表示
+      const teamANames = teamA.map(t => t.player.name).join(' & ');
+      const teamBNames = teamB.map(t => t.player.name).join(' & ');
+
+      let pairText = 
+        `<span class="team-badge-a">青ペア: ${teamANames}</span><br>` +
+        `<span class="team-badge-b">オレンジペア: ${teamBNames}</span>`;
+
+      if (carriedTeamAIds) {
+        pairText += `<div style="font-size:0.8em; color:#d97706; margin-top:4px;">※引き分けのため前ホールのチームを引き継いでいます</div>`;
+      }
+
       document.getElementById('pair-display').innerHTML = pairText;
 
       clearEvents();
@@ -540,11 +586,10 @@
       const rule = document.getElementById('hdcpRule').value;
       const rawScores = [...currentScores];
 
-      // 1. オリンピック（ボーナス） & ペナルティ加減算
+      // 1. オリンピック & ペナルティ加減算
       for (let i = 0; i < 4; i++) {
         let bonusPenalty = 0;
 
-        // オリンピック計算
         const oly = playerEvents[i].olympic;
         if (oly === 'gold') bonusPenalty += 8;
         if (oly === 'silver') bonusPenalty += 5;
@@ -552,7 +597,6 @@
         if (oly === 'iron') bonusPenalty += 1;
         if (oly === 'dia') bonusPenalty += 10;
 
-        // ペナルティ計算 (各 -5P)
         if (playerEvents[i].putt3) bonusPenalty -= 5;
         if (playerEvents[i].bunker) bonusPenalty -= 5;
         if (playerEvents[i].pond) bonusPenalty -= 5;
@@ -591,30 +635,35 @@
         return adjusted >= 9 ? 9 : adjusted;
       });
 
-      // 4. ペア構成：打順1・4 (青) vs 打順2・3 (オレンジ)
-      const scoreA = buildTeamScore(finalScores[0], finalScores[3], currentPar);
-      const scoreB = buildTeamScore(finalScores[1], finalScores[2], currentPar);
+      // 4. ペア構成の決定と計算
+      const { teamA, teamB } = getCurrentTeams();
+      const scoreA = buildTeamScore(finalScores[teamA[0].index], finalScores[teamA[1].index], currentPar);
+      const scoreB = buildTeamScore(finalScores[teamB[0].index], finalScores[teamB[1].index], currentPar);
 
       // 5. 勝敗・ポイント計算
       let diff = Math.abs(scoreA - scoreB);
 
       if (scoreA < scoreB) {
         let gained = diff + carryOverPoints;
-        playerOrder[0].points += gained;
-        playerOrder[3].points += gained;
-        playerOrder[1].points -= gained;
-        playerOrder[2].points -= gained;
+        teamA[0].player.points += gained;
+        teamA[1].player.points += gained;
+        teamB[0].player.points -= gained;
+        teamB[1].player.points -= gained;
         carryOverPoints = 0;
+        carriedTeamAIds = null; // 引き分け解消のためチーム固定リセット
       } else if (scoreB < scoreA) {
         let gained = diff + carryOverPoints;
-        playerOrder[1].points += gained;
-        playerOrder[2].points += gained;
-        playerOrder[0].points -= gained;
-        playerOrder[3].points -= gained;
+        teamB[0].player.points += gained;
+        teamB[1].player.points += gained;
+        teamA[0].player.points -= gained;
+        teamA[1].player.points -= gained;
         carryOverPoints = 0;
+        carriedTeamAIds = null; // 引き分け解消のためチーム固定リセット
       } else {
         carryOverPoints += 10;
-        alert("ラスベガス引き分けのため、10点を次のホールへ持ち越します！");
+        // 引き分けのためチームAのメンバーIDを保持
+        carriedTeamAIds = [teamA[0].player.id, teamA[1].player.id];
+        alert("ラスベガス引き分けのため、チームを固定して10点を次のホールへ持ち越します！");
       }
 
       // 6. 次ホールの打順決め（実打数ベース、同打数は前打順維持）
