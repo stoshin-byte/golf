@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ラスベガス・ゴルフ計算アプリ</title>
+  <style>
+    body { font-family: sans-serif; padding: 15px; max-width: 600px; margin: 0 auto; background: #f4f6f8; }
+    h1, h2 { color: #2c3e50; text-align: center; margin-bottom: 10px; }
+    .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 15px; }
+    label { font-weight: bold; display: block; margin-top: 8px; }
+    input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background: #27ae60; color: white; font-size: 1.05em; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; padding: 12px; }
+    button:hover { background: #219150; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .player-row { display: grid; grid-template-columns: 90px 1fr 80px; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .player-row label { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #eef2f5; }
+    
+    /* 対戦ペア表示バッジ */
+    .pair-info { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; line-height: 1.6; }
+    .team-badge-a { color: #1e3a8a; background: #dbeafe; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+    .team-badge-b { color: #7c2d12; background: #ffedd5; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+
+    /* チップ表示枠 */
+    .chip-box {
+      background: #fefce8;
+      border: 1px solid #fef08a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .chip-box label { color: #854d0e; margin-top: 0; }
+
+    /* スコア入力用プレイヤーカード */
+    .player-card {
+      padding: 12px;
+      border-radius: 10px;
+      position: relative;
+    }
+    .team-a-box {
+      background-color: #eff6ff;
+      border: 2px solid #93c5fd;
+    }
+    .team-b-box {
+      background-color: #fff7ed;
+      border: 2px solid #fdba74;
+    }
+
+    /* 打順バッジ */
+    .order-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.85em;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+    }
+    .order-tag-1 { background: #fef08a; color: #854d0e; }
+    .order-tag-2 { background: #e2e8f0; color: #334155; }
+    .order-tag-3 { background: #fed7aa; color: #9a3412; }
+    .order-tag-4 { background: #cbd5e1; color: #475569; }
+
+    .player-name-title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .team-a-box .player-name-title { color: #1e40af; }
+    .team-b-box .player-name-title { color: #9a3412; }
+  </style>
+</head>
+<body>
+
+  <h1>ゴルフ計算アプリ</h1>
+
+  <!-- 設定エリア -->
+  <div class="card" id="setup-section">
+    <h2>1. プレイヤー登録 & スタート打順</h2>
+    <p style="font-size:0.85em; color:#666; margin-top:-5px;">※最初のホール（1番ホール）の打順を選択してください</p>
+    
+    <div id="player-inputs">
+      <div class="player-row">
+        <select class="order-select" id="order-p1" onchange="updatePairPreview()">
+          <option value="1" selected>1番 (オナー)</option>
+          <option value="2">2番打者</option>
+          <option value="3">3番打者</option>
+          <option value="4">4番打者</option>
+        </select>
+        <input type="text" id="p1" value="Aさん" placeholder="名前">
+        <input type="number" id="h1" value="0" placeholder="HDCP">
+      </div>
+      <div class="player-row">
+        <select class="order-select" id="order-p2" onchange="updatePairPreview()">
+          <option value="1">1番 (オナー)</option>
+          <option value="2" selected>2番打者</option>
+          <option value="3">3番打者</option>
+          <option value="4">4番打者</option>
+        </select>
+        <input type="text" id="p2" value="Bさん" placeholder="名前">
+        <input type="number" id="h2" value="0" placeholder="HDCP">
+      </div>
+      <div class="player-row">
+        <select class="order-select" id="order-p3" onchange="updatePairPreview()">
+          <option value="1">1番 (オナー)</option>
+          <option value="2">2番打者</option>
+          <option value="3" selected>3番打者</option>
+          <option value="4">4番打者</option>
+        </select>
+        <input type="text" id="p3" value="Cさん" placeholder="名前">
+        <input type="number" id="h3" value="0" placeholder="HDCP">
+      </div>
+      <div class="player-row">
+        <select class="order-select" id="order-p4" onchange="updatePairPreview()">
+          <option value="1">1番 (オナー)</option>
+          <option value="2">2番打者</option>
+          <option value="3">3番打者</option>
+          <option value="4" selected>4番打者</option>
+        </select>
+        <input type="text" id="p4" value="Dさん" placeholder="名前">
+        <input type="number" id="h4" value="0" placeholder="HDCP">
+      </div>
+    </div>
+
+    <div class="pair-info" id="preview-pair" style="margin-top:15px;"></div>
+
+    <label>ハンディ適用条件</label>
+    <select id="hdcpRule">
+      <option value="par45">PAR 4, 5 のみ適用</option>
+      <option value="everyone">全ホール適用 (エブリワン)</option>
+      <option value="none">ハンディなし</option>
+    </select>
+
+    <button onclick="startGame()">ゲーム開始</button>
+  </div>
+
+  <!-- スコア入力エリア -->
+  <div class="card" id="game-section" style="display:none;">
+    <h2 id="hole-title">1番ホール</h2>
+    <div class="pair-info" id="pair-display"></div>
+
+    <div class="grid">
+      <div>
+        <label>PAR設定</label>
+        <select id="current-par" onchange="onParChange()">
+          <option value="4" selected>PAR 4</option>
+          <option value="3">PAR 3</option>
+          <option value="5">PAR 5</option>
+        </select>
+      </div>
+      <div>
+        <label>ラスベガス持越</label>
+        <input type="text" id="carry-display" value="0点" readonly style="background:#eee; font-weight:bold;">
+      </div>
+    </div>
+
+    <!-- チップ（ニアピン・ドラコン）入力領域 -->
+    <div class="chip-box" id="chip-container" style="display:none;">
+      <label id="chip-title">🚩 ニアピン勝者（PAR 3）</label>
+      <select id="chip-winner-select"></select>
+      <div style="font-size:0.8em; color:#854d0e; margin-top:4px;" id="chip-carry-info"></div>
+    </div>
+
+    <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※実打数を入力してください</p>
+
+    <!-- 打順アイコン＆ペア色分けつきスコア入力 -->
+    <div class="grid">
+      <div class="player-card team-a-box">
+        <div class="order-tag order-tag-1">👑 1番 (オナー)</div>
+        <div class="player-name-title" id="lbl-p1">Aさん</div>
+        <input type="number" id="score1" min="1" placeholder="打数">
+      </div>
+      
+      <div class="player-card team-b-box">
+        <div class="order-tag order-tag-2">🥈 2番打者</div>
+        <div class="player-name-title" id="lbl-p2">Bさん</div>
+        <input type="number" id="score2" min="1" placeholder="打数">
+      </div>
+      
+      <div class="player-card team-b-box">
+        <div class="order-tag order-tag-3">🥉 3番打者</div>
+        <div class="player-name-title" id="lbl-p3">Cさん</div>
+        <input type="number" id="score3" min="1" placeholder="打数">
+      </div>
+      
+      <div class="player-card team-a-box">
+        <div class="order-tag order-tag-4">4️⃣ 4番打者</div>
+        <div class="player-name-title" id="lbl-p4">Dさん</div>
+        <input type="number" id="score4" min="1" placeholder="打数">
+      </div>
+    </div>
+
+    <button onclick="calculateHole()">このホールのスコアを計算・次へ</button>
+  </div>
+
+  <!-- 結果表示エリア -->
+  <div class="card" id="result-section" style="display:none;">
+    <h2>現在の累計スコア</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>名前</th>
+          <th>累積ポイント</th>
+        </tr>
+      </thead>
+      <tbody id="score-table-body"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let playerOrder = [];
+    let currentHole = 1;
+    let carryOverPoints = 0;
+
+    // チップ持ち越し用変数
+    let nearPinCarry = 0; // ニアピン持ち越し(点)
+    let doraConCarry = 0; // ドラコン持ち越し(点)
+
+    function updatePairPreview() {
+      const inputs = getRegisteredPlayers();
+      if (!inputs) return;
+
+      const p1 = inputs.find(p => p.order === 1);
+      const p2 = inputs.find(p => p.order === 2);
+      const p3 = inputs.find(p => p.order === 3);
+      const p4 = inputs.find(p => p.order === 4);
+
+      if (p1 && p2 && p3 && p4) {
+        document.getElementById('preview-pair').innerHTML = 
+          `スタート対戦:<br>` +
+          `<span class="team-badge-a">青ペア: 👑 1番 ${p1.name} & 4️⃣ 4番 ${p4.name}</span><br>` +
+          `<span class="team-badge-b">オレンジペア: 🥈 2番 ${p2.name} & 🥉 3番 ${p3.name}</span>`;
+      }
+    }
+
+    function getRegisteredPlayers() {
+      const pData = [
+        { id: 1, name: document.getElementById('p1').value || 'Aさん', hdcp: parseInt(document.getElementById('h1').value) || 0, order: parseInt(document.getElementById('order-p1').value), points: 0 },
+        { id: 2, name: document.getElementById('p2').value || 'Bさん', hdcp: parseInt(document.getElementById('h2').value) || 0, order: parseInt(document.getElementById('order-p2').value), points: 0 },
+        { id: 3, name: document.getElementById('p3').value || 'Cさん', hdcp: parseInt(document.getElementById('h3').value) || 0, order: parseInt(document.getElementById('order-p3').value), points: 0 },
+        { id: 4, name: document.getElementById('p4').value || 'Dさん', hdcp: parseInt(document.getElementById('h4').value) || 0, order: parseInt(document.getElementById('order-p4').value), points: 0 }
+      ];
+
+      const orders = pData.map(p => p.order);
+      const hasDuplicates = new Set(orders).size !== orders.length;
+
+      if (hasDuplicates) {
+        document.getElementById('preview-pair').innerText = "※打順が重複しています（1〜4番を重複なく選択してください）";
+        return null;
+      }
+
+      pData.sort((a, b) => a.order - b.order);
+      return pData;
+    }
+
+    function startGame() {
+      const initialOrder = getRegisteredPlayers();
+      if (!initialOrder) {
+        alert("打順（1番〜4番）が重複しないように選んでください。");
+        return;
+      }
+
+      playerOrder = initialOrder;
+
+      document.getElementById('setup-section').style.display = 'none';
+      document.getElementById('game-section').style.display = 'block';
+      document.getElementById('result-section').style.display = 'block';
+
+      updateHoleUI();
+      renderTable();
+    }
+
+    function updateHoleUI() {
+      document.getElementById('hole-title').innerText = `${currentHole}番ホール`;
+      document.getElementById('carry-display').value = `${carryOverPoints} 点`;
+
+      document.getElementById('lbl-p1').innerText = playerOrder[0].name;
+      document.getElementById('lbl-p2').innerText = playerOrder[1].name;
+      document.getElementById('lbl-p3').innerText = playerOrder[2].name;
+      document.getElementById('lbl-p4').innerText = playerOrder[3].name;
+
+      const pairText = 
+        `<span class="team-badge-a">青ペア: 👑 1番 ${playerOrder[0].name} & 4️⃣ 4番 ${playerOrder[3].name}</span><br>` +
+        `<span class="team-badge-b">オレンジペア: 🥈 2番 ${playerOrder[1].name} & 🥉 3番 ${playerOrder[2].name}</span>`;
+      document.getElementById('pair-display').innerHTML = pairText;
+
+      onParChange(); // PAR切替時のUI反映
+    }
+
+    // PAR切替時のチップ入力コントロール
+    function onParChange() {
+      const par = parseInt(document.getElementById('current-par').value);
+      const container = document.getElementById('chip-container');
+      const title = document.getElementById('chip-title');
+      const select = document.getElementById('chip-winner-select');
+      const info = document.getElementById('chip-carry-info');
+
+      if (par === 3 || par === 5) {
+        container.style.display = 'block';
+        select.innerHTML = '<option value="-1">なし（該当者なし）</option>';
+        
+        // プレイヤー候補のセット
+        playerOrder.forEach((p) => {
+          select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
+
+        if (par === 3) {
+          title.innerText = "🚩 ニアピン対象ホール (10P)";
+          const totalPrize = 10 + nearPinCarry;
+          info.innerText = nearPinCarry > 0 ? `※キャリーオーバー中！今回の獲得点数: ${totalPrize}点` : "※該当者なしの場合は次回PAR3へ全額持越し";
+        } else {
+          title.innerText = "🏌️‍♂️ ドラコン対象ホール (10P)";
+          const totalPrize = 10 + doraConCarry;
+          info.innerText = doraConCarry > 0 ? `※キャリーオーバー中！今回の獲得点数: ${totalPrize}点` : "※該当者なしの場合は次回PAR5へ全額持越し";
+        }
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    function calculateHole() {
+      const par = parseInt(document.getElementById('current-par').value);
+      const rule = document.getElementById('hdcpRule').value;
+
+      const rawScores = [
+        parseInt(document.getElementById('score1').value),
+        parseInt(document.getElementById('score2').value),
+        parseInt(document.getElementById('score3').value),
+        parseInt(document.getElementById('score4').value)
+      ];
+
+      if (rawScores.some(isNaN)) {
+        alert("全員の打数を入力してください。");
+        return;
+      }
+
+      // 1. チップ（ニアピン・ドラコン）の計算
+      if (par === 3 || par === 5) {
+        const winnerId = parseInt(document.getElementById('chip-winner-select').value);
+        if (par === 3) {
+          if (winnerId !== -1) {
+            const prize = 10 + nearPinCarry;
+            // 獲得者以外3人からポイント徴収（合計+prize*3 または 単純+prize）
+            // 通常のチップ戦（各人から獲得）: 1人が他3人から獲得する場合は +prize*3 点差
+            // ここでは総取り形式（＋獲得ポイント）としてプレイヤー累計に直接加算
+            addChipPoints(winnerId, prize);
+            nearPinCarry = 0; // 持ち越しリセット
+          } else {
+            nearPinCarry += 10; // 10P繰り越し
+          }
+        } else if (par === 5) {
+          if (winnerId !== -1) {
+            const prize = 10 + doraConCarry;
+            addChipPoints(winnerId, prize);
+            doraConCarry = 0; // 持ち越しリセット
+          } else {
+            doraConCarry += 10; // 10P繰り越し
+          }
+        }
+      }
+
+      // 2. ハンディ減算 ➔ 9打上限の処理
+      const finalScores = rawScores.map((score, idx) => {
+        let hdcp = playerOrder[idx].hdcp;
+        if (rule === 'none' || (rule === 'par45' && par === 3)) {
+          hdcp = 0;
+        }
+        let adjusted = score - hdcp;
+        return adjusted >= 9 ? 9 : adjusted;
+      });
+
+      // 3. ペア構成：打順1・4 (青) vs 打順2・3 (オレンジ)
+      const scoreA = buildTeamScore(finalScores[0], finalScores[3], par);
+      const scoreB = buildTeamScore(finalScores[1], finalScores[2], par);
+
+      // 4. 勝敗・ポイント計算
+      let diff = Math.abs(scoreA - scoreB);
+
+      if (scoreA < scoreB) {
+        let gained = diff + carryOverPoints;
+        playerOrder[0].points += gained;
+        playerOrder[3].points += gained;
+        playerOrder[1].points -= gained;
+        playerOrder[2].points -= gained;
+        carryOverPoints = 0;
+      } else if (scoreB < scoreA) {
+        let gained = diff + carryOverPoints;
+        playerOrder[1].points += gained;
+        playerOrder[2].points += gained;
+        playerOrder[0].points -= gained;
+        playerOrder[3].points -= gained;
+        carryOverPoints = 0;
+      } else {
+        carryOverPoints += 10;
+        alert("ラスベガス引き分けのため、10点を次のホールへ持ち越します！");
+      }
+
+      // 5. 次ホールの打順決め（実打数ベース、同打数は前打順維持）
+      let lastPerformance = playerOrder.map((p, idx) => ({
+        player: p,
+        rawScore: rawScores[idx],
+        originalIndex: idx
+      }));
+
+      lastPerformance.sort((a, b) => {
+        if (a.rawScore !== b.rawScore) {
+          return a.rawScore - b.rawScore;
+        }
+        return a.originalIndex - b.originalIndex;
+      });
+
+      playerOrder = lastPerformance.map(item => item.player);
+
+      currentHole++;
+      clearInputs();
+      updateHoleUI();
+      renderTable();
+    }
+
+    // チップ獲得時の個別ポイント処理（各人から獲得する形式: 勝者+30P, 他3人-10P）
+    function addChipPoints(winnerId, prize) {
+      playerOrder.forEach(p => {
+        if (p.id === winnerId) {
+          p.points += (prize * 3); // 他の3人から受け取る
+        } else {
+          p.points -= prize;
+        }
+      });
+    }
+
+    function buildTeamScore(s1, s2, par) {
+      let best = Math.min(s1, s2);
+      let worst = Math.max(s1, s2);
+      return (best * 10) + worst;
+    }
+
+    function clearInputs() {
+      document.getElementById('score1').value = '';
+      document.getElementById('score2').value = '';
+      document.getElementById('score3').value = '';
+      document.getElementById('score4').value = '';
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('score-table-body');
+      tbody.innerHTML = '';
+      
+      let sortedById = [...playerOrder].sort((a, b) => a.id - b.id);
+      sortedById.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.name}</td><td>${p.points} 点</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.onload = updatePairPreview;
+  </script>
+</body>
+</html>
