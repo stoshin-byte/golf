@@ -56,6 +56,15 @@
     .btn-cnt:active { background: #cbd5e1; }
     .score-val { flex: 1; text-align: center; font-size: 1.2em; font-weight: bold; background: white; border: 1px solid #ccc; border-radius: 6px; padding: 6px 0; }
 
+    /* 特殊イベント・チップ選択タグ（ON/OFF切り替え） */
+    .event-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .btn-tag {
+      font-size: 0.72em; font-weight: bold; padding: 4px 6px; border-radius: 4px;
+      border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer; margin-top: 0; width: auto; flex: 1 1 auto;
+    }
+    .btn-tag.active-plus { background: #dcfce7; color: #166534; border-color: #86efac; } /* ボーナス時 (緑) */
+    .btn-tag.active-minus { background: #fee2e2; color: #991b1b; border-color: #fca5a5; } /* ペナ時 (赤) */
+
     /* 打順バッジ */
     .order-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8em; font-weight: bold; padding: 2px 6px; border-radius: 12px; margin-bottom: 4px; }
     .order-tag-1 { background: #fef08a; color: #854d0e; }
@@ -159,10 +168,11 @@
       <div style="font-size:0.8em; color:#854d0e; margin-top:4px;" id="chip-carry-info"></div>
     </div>
 
-    <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数をボタンで選択してください</p>
+    <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数と該当のイベント(ペナ/ボーナス)を選択してください</p>
 
-    <!-- 打数カウンタ（+-ボタン付き） -->
+    <!-- 打数カウンタ＆イベント選択タグ -->
     <div class="grid">
+      <!-- 1番打者 -->
       <div class="player-card team-a-box">
         <div class="order-tag order-tag-1">👑 1番 (オナー)</div>
         <div class="player-name-title" id="lbl-p1">Aさん</div>
@@ -171,8 +181,16 @@
           <div class="score-val" id="score-val-0">4</div>
           <button class="btn-cnt" onclick="changeScore(0, 1)">+</button>
         </div>
+        <div class="event-tags">
+          <button class="btn-tag" id="tag-0-putt1" onclick="toggleTag(0, 'putt1', 'plus')">1パット(+5)</button>
+          <button class="btn-tag" id="tag-0-birdie" onclick="toggleTag(0, 'birdie', 'plus')">バーディ(+5)</button>
+          <button class="btn-tag" id="tag-0-chipin" onclick="toggleTag(0, 'chipin', 'plus')">チップイン(+5)</button>
+          <button class="btn-tag" id="tag-0-putt3" onclick="toggleTag(0, 'putt3', 'minus')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-0-bunker" onclick="toggleTag(0, 'bunker', 'minus')">砂遊び(-5)</button>
+        </div>
       </div>
       
+      <!-- 2番打者 -->
       <div class="player-card team-b-box">
         <div class="order-tag order-tag-2">🥈 2番打者</div>
         <div class="player-name-title" id="lbl-p2">Bさん</div>
@@ -181,8 +199,16 @@
           <div class="score-val" id="score-val-1">4</div>
           <button class="btn-cnt" onclick="changeScore(1, 1)">+</button>
         </div>
+        <div class="event-tags">
+          <button class="btn-tag" id="tag-1-putt1" onclick="toggleTag(1, 'putt1', 'plus')">1パット(+5)</button>
+          <button class="btn-tag" id="tag-1-birdie" onclick="toggleTag(1, 'birdie', 'plus')">バーディ(+5)</button>
+          <button class="btn-tag" id="tag-1-chipin" onclick="toggleTag(1, 'chipin', 'plus')">チップイン(+5)</button>
+          <button class="btn-tag" id="tag-1-putt3" onclick="toggleTag(1, 'putt3', 'minus')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-1-bunker" onclick="toggleTag(1, 'bunker', 'minus')">砂遊び(-5)</button>
+        </div>
       </div>
       
+      <!-- 3番打者 -->
       <div class="player-card team-b-box">
         <div class="order-tag order-tag-3">🥉 3番打者</div>
         <div class="player-name-title" id="lbl-p3">Cさん</div>
@@ -191,8 +217,16 @@
           <div class="score-val" id="score-val-2">4</div>
           <button class="btn-cnt" onclick="changeScore(2, 1)">+</button>
         </div>
+        <div class="event-tags">
+          <button class="btn-tag" id="tag-2-putt1" onclick="toggleTag(2, 'putt1', 'plus')">1パット(+5)</button>
+          <button class="btn-tag" id="tag-2-birdie" onclick="toggleTag(2, 'birdie', 'plus')">バーディ(+5)</button>
+          <button class="btn-tag" id="tag-2-chipin" onclick="toggleTag(2, 'chipin', 'plus')">チップイン(+5)</button>
+          <button class="btn-tag" id="tag-2-putt3" onclick="toggleTag(2, 'putt3', 'minus')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-2-bunker" onclick="toggleTag(2, 'bunker', 'minus')">砂遊び(-5)</button>
+        </div>
       </div>
       
+      <!-- 4番打者 -->
       <div class="player-card team-a-box">
         <div class="order-tag order-tag-4">4️⃣ 4番打者</div>
         <div class="player-name-title" id="lbl-p4">Dさん</div>
@@ -200,6 +234,13 @@
           <button class="btn-cnt" onclick="changeScore(3, -1)">-</button>
           <div class="score-val" id="score-val-3">4</div>
           <button class="btn-cnt" onclick="changeScore(3, 1)">+</button>
+        </div>
+        <div class="event-tags">
+          <button class="btn-tag" id="tag-3-putt1" onclick="toggleTag(3, 'putt1', 'plus')">1パット(+5)</button>
+          <button class="btn-tag" id="tag-3-birdie" onclick="toggleTag(3, 'birdie', 'plus')">バーディ(+5)</button>
+          <button class="btn-tag" id="tag-3-chipin" onclick="toggleTag(3, 'chipin', 'plus')">チップイン(+5)</button>
+          <button class="btn-tag" id="tag-3-putt3" onclick="toggleTag(3, 'putt3', 'minus')">3パット(-5)</button>
+          <button class="btn-tag" id="tag-3-bunker" onclick="toggleTag(3, 'bunker', 'minus')">砂遊び(-5)</button>
         </div>
       </div>
     </div>
@@ -230,14 +271,19 @@
     let currentPar = 4;
     let currentScores = [4, 4, 4, 4];
 
+    // 特殊イベントタグの状態管理
+    let playerEvents = [
+      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
+      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
+      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
+      { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false }
+    ];
+
     let nearPinCarry = 0;
     let doraConCarry = 0;
-    let hdcpRuleSetting = 'par45';
 
-    // ローカルストレージキー名
     const STORAGE_KEY = 'vegas_golf_app_data';
 
-    // 自動保存関数
     function saveData() {
       const state = {
         playerOrder,
@@ -250,7 +296,6 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
-    // 自動復元関数
     function loadSavedData() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -283,7 +328,6 @@
       return false;
     }
 
-    // データリセット関数
     function resetGame() {
       if (confirm("全スコアデータをクリアして、新規ゲームを開始しますか？")) {
         localStorage.removeItem(STORAGE_KEY);
@@ -362,13 +406,56 @@
     function changeScore(index, delta) {
       currentScores[index] += delta;
       if (currentScores[index] < 1) currentScores[index] = 1;
+
+      // 打数がPAR未満になった場合バーディタグを自動判定
+      if (currentScores[index] < currentPar) {
+        playerEvents[index].birdie = true;
+      } else {
+        playerEvents[index].birdie = false;
+      }
+
       updateScoreDisplay();
+      renderTagUI();
+    }
+
+    function toggleTag(index, key, type) {
+      playerEvents[index][key] = !playerEvents[index][key];
+      renderTagUI();
+    }
+
+    function renderTagUI() {
+      const keys = ['putt1', 'birdie', 'chipin', 'putt3', 'bunker'];
+      for (let i = 0; i < 4; i++) {
+        keys.forEach(k => {
+          const btn = document.getElementById(`tag-${i}-${k}`);
+          if (btn) {
+            btn.classList.remove('active-plus', 'active-minus');
+            if (playerEvents[i][k]) {
+              if (['putt1', 'birdie', 'chipin'].includes(k)) {
+                btn.classList.add('active-plus');
+              } else {
+                btn.classList.add('active-minus');
+              }
+            }
+          }
+        });
+      }
     }
 
     function updateScoreDisplay() {
       for (let i = 0; i < 4; i++) {
         document.getElementById(`score-val-${i}`).innerText = currentScores[i];
       }
+    }
+
+    function clearEvents() {
+      playerEvents = [
+        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
+        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
+        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false },
+        { putt1: false, birdie: false, chipin: false, putt3: false, bunker: false }
+      ];
+      renderTagUI();
     }
 
     function updateHoleUI() {
@@ -385,6 +472,7 @@
         `<span class="team-badge-b">オレンジペア: 🥈 2番 ${playerOrder[1].name} & 🥉 3番 ${playerOrder[2].name}</span>`;
       document.getElementById('pair-display').innerHTML = pairText;
 
+      clearEvents();
       setPar(4);
     }
 
@@ -420,7 +508,19 @@
       const rule = document.getElementById('hdcpRule').value;
       const rawScores = [...currentScores];
 
-      // 1. チップ（ニアピン・ドラコン）処理
+      // 1. 個別のペナルティ & ボーナス加減算（各イベント ±5P）
+      for (let i = 0; i < 4; i++) {
+        let bonusPenalty = 0;
+        if (playerEvents[i].putt1) bonusPenalty += 5;
+        if (playerEvents[i].birdie) bonusPenalty += 5;
+        if (playerEvents[i].chipin) bonusPenalty += 5;
+        if (playerEvents[i].putt3) bonusPenalty -= 5;
+        if (playerEvents[i].bunker) bonusPenalty -= 5;
+
+        playerOrder[i].points += bonusPenalty;
+      }
+
+      // 2. ニアピン・ドラコン処理
       if (currentPar === 3 || currentPar === 5) {
         const winnerId = parseInt(document.getElementById('chip-winner-select').value);
         if (currentPar === 3) {
@@ -440,7 +540,7 @@
         }
       }
 
-      // 2. ハンディ減算 ➔ 9打上限処理
+      // 3. ハンディ減算 ➔ 9打上限処理
       const finalScores = rawScores.map((score, idx) => {
         let hdcp = playerOrder[idx].hdcp;
         if (rule === 'none' || (rule === 'par45' && currentPar === 3)) {
@@ -450,11 +550,11 @@
         return adjusted >= 9 ? 9 : adjusted;
       });
 
-      // 3. ペア構成：打順1・4 (青) vs 打順2・3 (オレンジ)
+      // 4. ペア構成：打順1・4 (青) vs 打順2・3 (オレンジ)
       const scoreA = buildTeamScore(finalScores[0], finalScores[3], currentPar);
       const scoreB = buildTeamScore(finalScores[1], finalScores[2], currentPar);
 
-      // 4. 勝敗・ポイント計算
+      // 5. 勝敗・ポイント計算（ラスベガス）
       let diff = Math.abs(scoreA - scoreB);
 
       if (scoreA < scoreB) {
@@ -476,7 +576,7 @@
         alert("ラスベガス引き分けのため、10点を次のホールへ持ち越します！");
       }
 
-      // 5. 次ホールの打順決め（実打数ベース、同打数は前打順維持）
+      // 6. 次ホールの打順決め（実打数ベース、同打数は前打順維持）
       let lastPerformance = playerOrder.map((p, idx) => ({
         player: p,
         rawScore: rawScores[idx],
@@ -493,7 +593,7 @@
       playerOrder = lastPerformance.map(item => item.player);
 
       currentHole++;
-      saveData(); // ホール終了時に自動保存
+      saveData();
       updateHoleUI();
       renderTable();
     }
@@ -528,7 +628,7 @@
 
     window.onload = function() {
       updatePairPreview();
-      loadSavedData(); // 画面読み込み時に保存データを復元
+      loadSavedData();
     };
   </script>
 </body>
