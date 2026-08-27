@@ -12,6 +12,8 @@
     input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
     .btn-submit { background: #27ae60; color: white; font-size: 1.05em; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; padding: 12px; border-radius: 6px; width: 100%; }
     .btn-submit:hover { background: #219150; }
+    .btn-undo { background: #f39c12; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 10px; padding: 10px; border-radius: 6px; width: 100%; }
+    .btn-undo:hover { background: #d68910; }
     .btn-reset { background: #e74c3c; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; padding: 10px; border-radius: 6px; width: 100%; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .player-row { display: grid; grid-template-columns: 90px 1fr 80px; gap: 8px; align-items: center; margin-bottom: 8px; }
@@ -62,12 +64,12 @@
       font-size: 0.72em; font-weight: bold; padding: 4px 6px; border-radius: 4px;
       border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer; margin-top: 0; width: auto; flex: 1 1 auto;
     }
-    .btn-tag.active-gold { background: #fef08a; color: #854d0e; border-color: #eab308; } /* 金 */
-    .btn-tag.active-silver { background: #f1f5f9; color: #334155; border-color: #94a3b8; } /* 銀 */
-    .btn-tag.active-bronze { background: #ffedd5; color: #9a3412; border-color: #fdba74; } /* 銅 */
-    .btn-tag.active-iron { background: #e2e8f0; color: #475569; border-color: #cbd5e1; } /* 鉄 */
-    .btn-tag.active-dia { background: #e0f2fe; color: #0369a1; border-color: #38bdf8; } /* ダイヤ */
-    .btn-tag.active-minus { background: #fee2e2; color: #991b1b; border-color: #fca5a5; } /* ペナ時 (赤) */
+    .btn-tag.active-gold { background: #fef08a; color: #854d0e; border-color: #eab308; }
+    .btn-tag.active-silver { background: #f1f5f9; color: #334155; border-color: #94a3b8; }
+    .btn-tag.active-bronze { background: #ffedd5; color: #9a3412; border-color: #fdba74; }
+    .btn-tag.active-iron { background: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+    .btn-tag.active-dia { background: #e0f2fe; color: #0369a1; border-color: #38bdf8; }
+    .btn-tag.active-minus { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
 
     /* 打順バッジ */
     .order-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8em; font-weight: bold; padding: 2px 6px; border-radius: 12px; margin-bottom: 4px; }
@@ -176,7 +178,6 @@
 
     <!-- 打数カウンタ＆オリンピック・ペナタグ選択 -->
     <div class="grid">
-      <!-- 1番打者 -->
       <div class="player-card" id="card-0">
         <div class="order-tag order-tag-1">👑 1番 (オナー)</div>
         <div class="player-name-title" id="lbl-p1">Aさん</div>
@@ -198,7 +199,6 @@
         </div>
       </div>
       
-      <!-- 2番打者 -->
       <div class="player-card" id="card-1">
         <div class="order-tag order-tag-2">🥈 2番打者</div>
         <div class="player-name-title" id="lbl-p2">Bさん</div>
@@ -220,7 +220,6 @@
         </div>
       </div>
       
-      <!-- 3番打者 -->
       <div class="player-card" id="card-2">
         <div class="order-tag order-tag-3">🥉 3番打者</div>
         <div class="player-name-title" id="lbl-p3">Cさん</div>
@@ -242,7 +241,6 @@
         </div>
       </div>
       
-      <!-- 4番打者 -->
       <div class="player-card" id="card-3">
         <div class="order-tag order-tag-4">4️⃣ 4番打者</div>
         <div class="player-name-title" id="lbl-p4">Dさん</div>
@@ -266,6 +264,7 @@
     </div>
 
     <button class="btn-submit" onclick="calculateHole()">このホールのスコアを計算・次へ</button>
+    <button class="btn-undo" id="btn-undo" onclick="undoHole()" style="display:none;">↩️ 直前のホールを取り消す（1ホール戻る）</button>
   </div>
 
   <!-- 結果表示エリア -->
@@ -291,10 +290,9 @@
     let currentPar = 4;
     let currentScores = [4, 4, 4, 4];
 
-    // キャリーオーバー時のチーム引き継ぎ用 (IDベースでチームAメンバーを固定)
     let carriedTeamAIds = null;
+    let historyStack = []; // 履歴保存スタック
 
-    // オリンピック (一人1種類選択) & ペナルティ管理
     let playerEvents = [
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
@@ -315,6 +313,7 @@
         nearPinCarry,
         doraConCarry,
         carriedTeamAIds,
+        historyStack,
         hdcpRuleSetting: document.getElementById('hdcpRule').value
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -333,6 +332,7 @@
               nearPinCarry = state.nearPinCarry || 0;
               doraConCarry = state.doraConCarry || 0;
               carriedTeamAIds = state.carriedTeamAIds || null;
+              historyStack = state.historyStack || [];
               if (state.hdcpRuleSetting) {
                 document.getElementById('hdcpRule').value = state.hdcpRuleSetting;
               }
@@ -491,10 +491,8 @@
       renderTagUI();
     }
 
-    // 現在のチーム分けを取得 (引き継ぎがある場合は以前のチーム、それ以外は打順1・4 vs 2・3)
     function getCurrentTeams() {
       if (carriedTeamAIds) {
-        // 引き継ぎ中: IDが一致するプレイヤーをチームAとする
         const teamA = [];
         const teamB = [];
         playerOrder.forEach((p, idx) => {
@@ -506,7 +504,6 @@
         });
         return { teamA, teamB };
       } else {
-        // 通常時: 打順1(idx 0)と4(idx 3)がチームA、打順2(idx 1)と3(idx 2)がチームB
         return {
           teamA: [{ player: playerOrder[0], index: 0 }, { player: playerOrder[3], index: 3 }],
           teamB: [{ player: playerOrder[1], index: 1 }, { player: playerOrder[2], index: 2 }]
@@ -525,7 +522,6 @@
 
       const { teamA, teamB } = getCurrentTeams();
 
-      // カードの色分け適用
       for (let i = 0; i < 4; i++) {
         const card = document.getElementById(`card-${i}`);
         card.className = 'player-card';
@@ -536,7 +532,6 @@
         }
       }
 
-      // 対戦バッジの表示
       const teamANames = teamA.map(t => t.player.name).join(' & ');
       const teamBNames = teamB.map(t => t.player.name).join(' & ');
 
@@ -549,6 +544,14 @@
       }
 
       document.getElementById('pair-display').innerHTML = pairText;
+
+      // 「元に戻す」ボタンの表示制御
+      const undoBtn = document.getElementById('btn-undo');
+      if (historyStack.length > 0) {
+        undoBtn.style.display = 'block';
+      } else {
+        undoBtn.style.display = 'none';
+      }
 
       clearEvents();
       setPar(4);
@@ -583,6 +586,16 @@
     }
 
     function calculateHole() {
+      // 履歴スタックへ現在の完全な状態を保存
+      historyStack.push({
+        playerOrder: JSON.parse(JSON.stringify(playerOrder)),
+        currentHole,
+        carryOverPoints,
+        nearPinCarry,
+        doraConCarry,
+        carriedTeamAIds: carriedTeamAIds ? [...carriedTeamAIds] : null
+      });
+
       const rule = document.getElementById('hdcpRule').value;
       const rawScores = [...currentScores];
 
@@ -650,7 +663,7 @@
         teamB[0].player.points -= gained;
         teamB[1].player.points -= gained;
         carryOverPoints = 0;
-        carriedTeamAIds = null; // 引き分け解消のためチーム固定リセット
+        carriedTeamAIds = null;
       } else if (scoreB < scoreA) {
         let gained = diff + carryOverPoints;
         teamB[0].player.points += gained;
@@ -658,10 +671,9 @@
         teamA[0].player.points -= gained;
         teamA[1].player.points -= gained;
         carryOverPoints = 0;
-        carriedTeamAIds = null; // 引き分け解消のためチーム固定リセット
+        carriedTeamAIds = null;
       } else {
         carryOverPoints += 10;
-        // 引き分けのためチームAのメンバーIDを保持
         carriedTeamAIds = [teamA[0].player.id, teamA[1].player.id];
         alert("ラスベガス引き分けのため、チームを固定して10点を次のホールへ持ち越します！");
       }
@@ -686,6 +698,26 @@
       saveData();
       updateHoleUI();
       renderTable();
+    }
+
+    // 1ホール戻す（直前の取り消し）関数
+    function undoHole() {
+      if (historyStack.length === 0) return;
+
+      if (confirm("直前のホールの計算を取り消して、1ホール前の状態に戻しますか？")) {
+        const lastState = historyStack.pop();
+        
+        playerOrder = lastState.playerOrder;
+        currentHole = lastState.currentHole;
+        carryOverPoints = lastState.carryOverPoints;
+        nearPinCarry = lastState.nearPinCarry;
+        doraConCarry = lastState.doraConCarry;
+        carriedTeamAIds = lastState.carriedTeamAIds;
+
+        saveData();
+        updateHoleUI();
+        renderTable();
+      }
     }
 
     function addChipPoints(winnerId, prize) {
