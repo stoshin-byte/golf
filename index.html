@@ -6,7 +6,13 @@
   <title>ラスベガス・ゴルフ計算アプリ</title>
   <style>
     body { font-family: sans-serif; padding: 15px; max-width: 600px; margin: 0 auto; background: #f4f6f8; }
-    h1, h2 { color: #2c3e50; text-align: center; margin-bottom: 10px; }
+    
+    /* ヘッダー周り */
+    .header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    h1 { color: #2c3e50; font-size: 1.5em; margin: 0; }
+    .btn-rule-modal { background: #3b82f6; color: white; border: none; font-weight: bold; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; cursor: pointer; width: auto; margin: 0; }
+    .btn-rule-modal:hover { background: #2563eb; }
+
     .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 15px; }
     label { font-weight: bold; display: block; margin-top: 8px; }
     input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
@@ -63,25 +69,17 @@
     .label-bonus { color: #15803d; }
     .label-penalty { color: #b91c1c; }
 
-    /* 特殊イベント・オリンピック・ペナタグ（視覚的デザイン刷新） */
+    /* 特殊イベント・オリンピック・ペナタグ */
     .event-tags { display: flex; flex-wrap: wrap; gap: 3px; }
     
-    /* 基本ボタン */
     .btn-tag {
       font-size: 0.7em; font-weight: bold; padding: 4px 5px; border-radius: 5px;
       cursor: pointer; margin-top: 0; width: auto; flex: 1 1 calc(50% - 4px); text-align: center;
       transition: all 0.15s ease;
     }
 
-    /* ボーナスボタン（ベース：薄い緑背景） */
-    .btn-tag-bonus {
-      background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;
-    }
-
-    /* ペナルティボタン（ベース：薄い赤背景） */
-    .btn-tag-penalty {
-      background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
-    }
+    .btn-tag-bonus { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .btn-tag-penalty { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
 
     /* アクティブ（選択中）状態デザイン */
     .btn-tag.active-gold { background: #fde047; color: #713f12; border-color: #ca8a04; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
@@ -89,7 +87,6 @@
     .btn-tag.active-bronze { background: #ffedd5; color: #7c2d12; border-color: #ea580c; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .btn-tag.active-iron { background: #cbd5e1; color: #334155; border-color: #475569; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .btn-tag.active-dia { background: #38bdf8; color: #ffffff; border-color: #0284c7; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    
     .btn-tag.active-minus { background: #ef4444; color: #ffffff; border-color: #b91c1c; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 
     /* 打順バッジ */
@@ -108,11 +105,30 @@
     .history-tag { font-size: 0.75em; padding: 1px 4px; border-radius: 3px; display: inline-block; margin: 1px; }
     .tag-blue { background: #dbeafe; color: #1e3a8a; }
     .tag-orange { background: #ffedd5; color: #7c2d12; }
+
+    /* ルールモーダル（ポップアップ）用CSS */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6); z-index: 1000; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;
+    }
+    .modal-content {
+      background: white; border-radius: 12px; max-width: 550px; width: 100%; max-height: 85vh;
+      overflow-y: auto; padding: 20px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; }
+    .modal-header h2 { margin: 0; font-size: 1.2em; color: #1e293b; }
+    .btn-close-modal { background: #94a3b8; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; font-size: 1.1em; cursor: pointer; padding: 0; line-height: 30px; width: 30px; }
+    .rule-sec-title { font-weight: bold; color: #1e3a8a; background: #eff6ff; padding: 6px 10px; border-radius: 6px; font-size: 0.95em; margin-top: 15px; margin-bottom: 8px; border-left: 4px solid #2563eb; }
+    .rule-list { font-size: 0.85em; color: #334155; line-height: 1.6; padding-left: 18px; margin: 5px 0; }
+    .rule-list li { margin-bottom: 6px; }
   </style>
 </head>
 <body>
 
-  <h1>ゴルフ計算アプリ</h1>
+  <div class="header-container">
+    <h1>ゴルフ計算アプリ</h1>
+    <button class="btn-rule-modal" onclick="openRuleModal()">❓ ルール説明</button>
+  </div>
 
   <!-- 設定エリア -->
   <div class="card" id="setup-section">
@@ -217,11 +233,11 @@
         
         <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag btn-tag-bonus" id="tag-0-gold" onclick="toggleOlympic(0, 'gold')">🥇金 (+2)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-0-silver" onclick="toggleOlympic(0, 'silver')">🥈銀 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-0-bronze" onclick="toggleOlympic(0, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-gold" onclick="toggleOlympic(0, 'gold')">🥇金 (+4)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-silver" onclick="toggleOlympic(0, 'silver')">🥈銀 (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-bronze" onclick="toggleOlympic(0, 'bronze')">🥉銅 (+2)</button>
           <button class="btn-tag btn-tag-bonus" id="tag-0-iron" onclick="toggleOlympic(0, 'iron')">鉄 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+5)</button>
         </div>
 
         <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
@@ -244,11 +260,11 @@
         
         <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag btn-tag-bonus" id="tag-1-gold" onclick="toggleOlympic(1, 'gold')">🥇金 (+2)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-1-silver" onclick="toggleOlympic(1, 'silver')">🥈銀 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-1-bronze" onclick="toggleOlympic(1, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-gold" onclick="toggleOlympic(1, 'gold')">🥇金 (+4)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-silver" onclick="toggleOlympic(1, 'silver')">🥈銀 (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-bronze" onclick="toggleOlympic(1, 'bronze')">🥉銅 (+2)</button>
           <button class="btn-tag btn-tag-bonus" id="tag-1-iron" onclick="toggleOlympic(1, 'iron')">鉄 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+5)</button>
         </div>
 
         <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
@@ -271,11 +287,11 @@
         
         <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag btn-tag-bonus" id="tag-2-gold" onclick="toggleOlympic(2, 'gold')">🥇金 (+2)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-2-silver" onclick="toggleOlympic(2, 'silver')">🥈銀 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-2-bronze" onclick="toggleOlympic(2, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-gold" onclick="toggleOlympic(2, 'gold')">🥇金 (+4)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-silver" onclick="toggleOlympic(2, 'silver')">🥈銀 (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-bronze" onclick="toggleOlympic(2, 'bronze')">🥉銅 (+2)</button>
           <button class="btn-tag btn-tag-bonus" id="tag-2-iron" onclick="toggleOlympic(2, 'iron')">鉄 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+5)</button>
         </div>
 
         <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
@@ -298,11 +314,11 @@
         
         <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag btn-tag-bonus" id="tag-3-gold" onclick="toggleOlympic(3, 'gold')">🥇金 (+2)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-3-silver" onclick="toggleOlympic(3, 'silver')">🥈銀 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-3-bronze" onclick="toggleOlympic(3, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-gold" onclick="toggleOlympic(3, 'gold')">🥇金 (+4)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-silver" onclick="toggleOlympic(3, 'silver')">🥈銀 (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-bronze" onclick="toggleOlympic(3, 'bronze')">🥉銅 (+2)</button>
           <button class="btn-tag btn-tag-bonus" id="tag-3-iron" onclick="toggleOlympic(3, 'iron')">鉄 (+1)</button>
-          <button class="btn-tag btn-tag-bonus" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+5)</button>
         </div>
 
         <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
@@ -355,6 +371,51 @@
     <button class="btn-reset" onclick="resetGame()">データをリセットして新ゲーム</button>
   </div>
 
+  <!-- ルール説明用モーダル（ポップアップ） -->
+  <div class="modal-overlay" id="ruleModal" onclick="closeRuleModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>⛳️ ゲームルール一覧</h2>
+        <button class="btn-close-modal" onclick="closeRuleModal()">✕</button>
+      </div>
+
+      <div class="rule-sec-title">1. ラスベガス（本線ルール）</div>
+      <ul class="rule-list">
+        <li><b>ペア決定</b>: 前ホールの実打数（ハンディなし）が良い順（1〜4番手）に並び、<b>【青】1&amp;4番</b> vs <b>【オレンジ】2&amp;3番</b> で自動編成。</li>
+        <li><b>スコア合成</b>: 良い打数を10の位に配置（例: 4打と5打 ➔ 45点）。数字が小さいチームの勝利。</li>
+        <li><b>バーディ逆転</b>: 相手にバーディが出ると、自チームは<b>悪い方の打数が10の位に繰り上がり（逆転）</b>（例: 4打と5打 ➔ 54点）。</li>
+        <li><b>両チームバーディ</b>: 両チームとも逆転処理が適用され、10の位同士で正しく計算。</li>
+        <li><b>引き分け</b>: 10点を次回へ持ち越し。次回ホールは<b>前ホールのチーム構成を固定して引き継ぎ</b>。</li>
+        <li><b>打数上限</b>: スコア計算時の打数は最大9打。全18ホールで終了。</li>
+      </ul>
+
+      <div class="rule-sec-title">2. ハンディキャップ（HDCP）</div>
+      <ul class="rule-list">
+        <li>スタート時に設定（PAR4,5のみ / PAR4のみ / 全ホール / ハンディなし）。</li>
+        <li>チームスコア計算時のみ打数から減算。次ホールの打順決め（オナー順）には影響しません。</li>
+      </ul>
+
+      <div class="rule-sec-title">3. ✨ オリンピック（ゼロサム精算）</div>
+      <ul class="rule-list">
+        <li><b>💎 ダイヤ (+5)</b>: 他3人から各5P（実質 +15P）※グリーン外からカップイン</li>
+        <li><b>🥇 金 (+4)</b>: 他3人から各4P（実質 +12P）※1パット最長距離</li>
+        <li><b>🥈 銀 (+3)</b>: 他3人から各3P（実質 +9P）</li>
+        <li><b>🥉 銅 (+2)</b>: 他3人から各2P（実質 +6P）</li>
+        <li><b>鉄 鉄 (+1)</b>: 他3人から各1P（実質 +3P）※1パット最短距離</li>
+      </ul>
+
+      <div class="rule-sec-title">4. ⚠️ ペナルティ（各 -2P / ゼロサム精算）</div>
+      <ul class="rule-list">
+        <li><b>3パット / 砂遊び / 池ポチャ / ワンペナ</b>: 該当者が他3人へ各2P支払い（実質 -6P / 他3人は各 +2P）。</li>
+      </ul>
+
+      <div class="rule-sec-title">5. 🚩 チップ（ドラコン・ニアピン）</div>
+      <ul class="rule-list">
+        <li><b>PAR3(ニアピン) / PAR5(ドラコン)</b>: 勝者は他3人から各10P獲得（実質 +30P）。該当者なしは次回同PARへ全額持ち越し。</li>
+      </ul>
+    </div>
+  </div>
+
   <script>
     let playerOrder = [];
     let currentHole = 1;
@@ -377,6 +438,17 @@
     let doraConCarry = 0;
 
     const STORAGE_KEY = 'vegas_golf_app_data';
+
+    // ルールモーダル制御
+    function openRuleModal() {
+      document.getElementById('ruleModal').style.display = 'flex';
+    }
+
+    function closeRuleModal(e) {
+      if (!e || e.target.id === 'ruleModal' || e.target.classList.contains('btn-close-modal')) {
+        document.getElementById('ruleModal').style.display = 'none';
+      }
+    }
 
     function saveData() {
       const state = {
@@ -675,6 +747,19 @@
       }
     }
 
+    function buildTeamScoreWithReversal(myScores, oppScores, par) {
+      let best = Math.min(myScores[0], myScores[1]);
+      let worst = Math.max(myScores[0], myScores[1]);
+
+      const oppHasBirdie = oppScores.some(s => s < par);
+
+      if (oppHasBirdie) {
+        return (worst * 10) + best;
+      } else {
+        return (best * 10) + worst;
+      }
+    }
+
     function calculateHole() {
       historyStack.push({
         playerOrder: JSON.parse(JSON.stringify(playerOrder)),
@@ -713,11 +798,11 @@
         const oly = playerEvents[i].olympic;
         let rate = 0;
 
-        if (oly === 'gold') rate = 2;
-        if (oly === 'silver') rate = 1;
-        if (oly === 'bronze') rate = 1;
+        if (oly === 'gold') rate = 4;
+        if (oly === 'silver') rate = 3;
+        if (oly === 'bronze') rate = 2;
         if (oly === 'iron') rate = 1;
-        if (oly === 'dia') rate = 3;
+        if (oly === 'dia') rate = 5;
 
         if (rate > 0) {
           addChipPoints(playerOrder[i].id, rate);
@@ -770,9 +855,12 @@
         return adjusted >= 9 ? 9 : adjusted;
       });
 
-      // 4. ペア構成の計算
-      const scoreA = buildTeamScore(finalScores[teamA[0].index], finalScores[teamA[1].index], currentPar);
-      const scoreB = buildTeamScore(finalScores[teamB[0].index], finalScores[teamB[1].index], currentPar);
+      // 4. スコア合成計算
+      const teamAScores = [finalScores[teamA[0].index], finalScores[teamA[1].index]];
+      const teamBScores = [finalScores[teamB[0].index], finalScores[teamB[1].index]];
+
+      const scoreA = buildTeamScoreWithReversal(teamAScores, teamBScores, currentPar);
+      const scoreB = buildTeamScoreWithReversal(teamBScores, teamAScores, currentPar);
 
       // 5. 勝敗・ポイント計算
       let diff = Math.abs(scoreA - scoreB);
@@ -862,12 +950,6 @@
       });
     }
 
-    function buildTeamScore(s1, s2, par) {
-      let best = Math.min(s1, s2);
-      let worst = Math.max(s1, s2);
-      return (best * 10) + worst;
-    }
-
     function renderTable() {
       const tbody = document.getElementById('score-table-body');
       tbody.innerHTML = '';
@@ -889,7 +971,6 @@
       const historyBody = document.getElementById('history-table-body');
       historyBody.innerHTML = '';
 
-      // ダイヤの表記を「ダ」に変更
       const olyLabel = { gold: '金', silver: '銀', bronze: '銅', iron: '鉄', dia: 'ダ' };
 
       holeLogs.forEach(log => {
