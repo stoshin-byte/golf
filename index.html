@@ -87,7 +87,6 @@
 
   <h1>ゴルフ計算アプリ</h1>
 
-  <!-- 設定エリア -->
   <div class="card" id="setup-section">
     <h2>1. プレイヤー登録 & スタート打順</h2>
     <p style="font-size:0.85em; color:#666; margin-top:-5px;">※最初のホール（1番ホール）の打順を選択してください</p>
@@ -147,7 +146,6 @@
     <button class="btn-submit" onclick="startGame()">ゲーム開始</button>
   </div>
 
-  <!-- スコア入力エリア -->
   <div class="card" id="game-section" style="display:none;">
     <h2 id="hole-title">1番ホール</h2>
     <div class="pair-info" id="pair-display"></div>
@@ -167,16 +165,14 @@
       </div>
     </div>
 
-    <!-- チップ（ニアピン・ドラコン）入力領域 -->
     <div class="chip-box" id="chip-container" style="display:none;">
       <label id="chip-title">🚩 ニアピン対象ホール (10P)</label>
       <select id="chip-winner-select"></select>
       <div style="font-size:0.8em; color:#854d0e; margin-top:4px;" id="chip-carry-info"></div>
     </div>
 
-    <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数と該当のボーナス(オリンピック)/ペナルティを選択してください</p>
+    <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数と該当のボーナス/ペナルティを選択してください</p>
 
-    <!-- 打数カウンタ＆オリンピック・ペナタグ選択 -->
     <div class="grid">
       <div class="player-card" id="card-0">
         <div class="order-tag order-tag-1">👑 1番 (オナー)</div>
@@ -187,15 +183,15 @@
           <button class="btn-cnt" onclick="changeScore(0, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-0-gold" onclick="toggleOlympic(0, 'gold')">金(+8)</button>
-          <button class="btn-tag" id="tag-0-silver" onclick="toggleOlympic(0, 'silver')">銀(+5)</button>
-          <button class="btn-tag" id="tag-0-bronze" onclick="toggleOlympic(0, 'bronze')">銅(+3)</button>
-          <button class="btn-tag" id="tag-0-iron" onclick="toggleOlympic(0, 'iron')">鉄(+1)</button>
-          <button class="btn-tag" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')">ダイヤ(+10)</button>
-          <button class="btn-tag" id="tag-0-putt3" onclick="toggleTag(0, 'putt3')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-0-bunker" onclick="toggleTag(0, 'bunker')">砂遊び(-5)</button>
-          <button class="btn-tag" id="tag-0-pond" onclick="toggleTag(0, 'pond')">池ポチャ(-5)</button>
-          <button class="btn-tag" id="tag-0-oneP" onclick="toggleTag(0, 'oneP')">ワンペナ(-5)</button>
+          <button class="btn-tag" id="tag-0-gold" onclick="toggleOlympic(0, 'gold')">金(各2P)</button>
+          <button class="btn-tag" id="tag-0-silver" onclick="toggleOlympic(0, 'silver')">銀(各1P)</button>
+          <button class="btn-tag" id="tag-0-bronze" onclick="toggleOlympic(0, 'bronze')">銅(各1P)</button>
+          <button class="btn-tag" id="tag-0-iron" onclick="toggleOlympic(0, 'iron')">鉄(各1P)</button>
+          <button class="btn-tag" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')">ダイヤ(各3P)</button>
+          <button class="btn-tag" id="tag-0-putt3" onclick="toggleTag(0, 'putt3')">3パット(各-2P)</button>
+          <button class="btn-tag" id="tag-0-bunker" onclick="toggleTag(0, 'bunker')">砂遊び(各-2P)</button>
+          <button class="btn-tag" id="tag-0-pond" onclick="toggleTag(0, 'pond')">池ポチャ(各-2P)</button>
+          <button class="btn-tag" id="tag-0-oneP" onclick="toggleTag(0, 'oneP')">ワンペナ(各-2P)</button>
         </div>
       </div>
       
@@ -208,15 +204,15 @@
           <button class="btn-cnt" onclick="changeScore(1, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-1-gold" onclick="toggleOlympic(1, 'gold')">金(+8)</button>
-          <button class="btn-tag" id="tag-1-silver" onclick="toggleOlympic(1, 'silver')">銀(+5)</button>
-          <button class="btn-tag" id="tag-1-bronze" onclick="toggleOlympic(1, 'bronze')">銅(+3)</button>
-          <button class="btn-tag" id="tag-1-iron" onclick="toggleOlympic(1, 'iron')">鉄(+1)</button>
-          <button class="btn-tag" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')">ダイヤ(+10)</button>
-          <button class="btn-tag" id="tag-1-putt3" onclick="toggleTag(1, 'putt3')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-1-bunker" onclick="toggleTag(1, 'bunker')">砂遊び(-5)</button>
-          <button class="btn-tag" id="tag-1-pond" onclick="toggleTag(1, 'pond')">池ポチャ(-5)</button>
-          <button class="btn-tag" id="tag-1-oneP" onclick="toggleTag(1, 'oneP')">ワンペナ(-5)</button>
+          <button class="btn-tag" id="tag-1-gold" onclick="toggleOlympic(1, 'gold')">金(各2P)</button>
+          <button class="btn-tag" id="tag-1-silver" onclick="toggleOlympic(1, 'silver')">銀(各1P)</button>
+          <button class="btn-tag" id="tag-1-bronze" onclick="toggleOlympic(1, 'bronze')">銅(各1P)</button>
+          <button class="btn-tag" id="tag-1-iron" onclick="toggleOlympic(1, 'iron')">鉄(各1P)</button>
+          <button class="btn-tag" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')">ダイヤ(各3P)</button>
+          <button class="btn-tag" id="tag-1-putt3" onclick="toggleTag(1, 'putt3')">3パット(各-2P)</button>
+          <button class="btn-tag" id="tag-1-bunker" onclick="toggleTag(1, 'bunker')">砂遊び(各-2P)</button>
+          <button class="btn-tag" id="tag-1-pond" onclick="toggleTag(1, 'pond')">池ポチャ(各-2P)</button>
+          <button class="btn-tag" id="tag-1-oneP" onclick="toggleTag(1, 'oneP')">ワンペナ(各-2P)</button>
         </div>
       </div>
       
@@ -229,15 +225,15 @@
           <button class="btn-cnt" onclick="changeScore(2, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-2-gold" onclick="toggleOlympic(2, 'gold')">金(+8)</button>
-          <button class="btn-tag" id="tag-2-silver" onclick="toggleOlympic(2, 'silver')">銀(+5)</button>
-          <button class="btn-tag" id="tag-2-bronze" onclick="toggleOlympic(2, 'bronze')">銅(+3)</button>
-          <button class="btn-tag" id="tag-2-iron" onclick="toggleOlympic(2, 'iron')">鉄(+1)</button>
-          <button class="btn-tag" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')">ダイヤ(+10)</button>
-          <button class="btn-tag" id="tag-2-putt3" onclick="toggleTag(2, 'putt3')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-2-bunker" onclick="toggleTag(2, 'bunker')">砂遊び(-5)</button>
-          <button class="btn-tag" id="tag-2-pond" onclick="toggleTag(2, 'pond')">池ポチャ(-5)</button>
-          <button class="btn-tag" id="tag-2-oneP" onclick="toggleTag(2, 'oneP')">ワンペナ(-5)</button>
+          <button class="btn-tag" id="tag-2-gold" onclick="toggleOlympic(2, 'gold')">金(各2P)</button>
+          <button class="btn-tag" id="tag-2-silver" onclick="toggleOlympic(2, 'silver')">銀(各1P)</button>
+          <button class="btn-tag" id="tag-2-bronze" onclick="toggleOlympic(2, 'bronze')">銅(各1P)</button>
+          <button class="btn-tag" id="tag-2-iron" onclick="toggleOlympic(2, 'iron')">鉄(各1P)</button>
+          <button class="btn-tag" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')">ダイヤ(各3P)</button>
+          <button class="btn-tag" id="tag-2-putt3" onclick="toggleTag(2, 'putt3')">3パット(各-2P)</button>
+          <button class="btn-tag" id="tag-2-bunker" onclick="toggleTag(2, 'bunker')">砂遊び(各-2P)</button>
+          <button class="btn-tag" id="tag-2-pond" onclick="toggleTag(2, 'pond')">池ポチャ(各-2P)</button>
+          <button class="btn-tag" id="tag-2-oneP" onclick="toggleTag(2, 'oneP')">ワンペナ(各-2P)</button>
         </div>
       </div>
       
@@ -250,15 +246,15 @@
           <button class="btn-cnt" onclick="changeScore(3, 1)">+</button>
         </div>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-3-gold" onclick="toggleOlympic(3, 'gold')">金(+8)</button>
-          <button class="btn-tag" id="tag-3-silver" onclick="toggleOlympic(3, 'silver')">銀(+5)</button>
-          <button class="btn-tag" id="tag-3-bronze" onclick="toggleOlympic(3, 'bronze')">銅(+3)</button>
-          <button class="btn-tag" id="tag-3-iron" onclick="toggleOlympic(3, 'iron')">鉄(+1)</button>
-          <button class="btn-tag" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')">ダイヤ(+10)</button>
-          <button class="btn-tag" id="tag-3-putt3" onclick="toggleTag(3, 'putt3')">3パット(-5)</button>
-          <button class="btn-tag" id="tag-3-bunker" onclick="toggleTag(3, 'bunker')">砂遊び(-5)</button>
-          <button class="btn-tag" id="tag-3-pond" onclick="toggleTag(3, 'pond')">池ポチャ(-5)</button>
-          <button class="btn-tag" id="tag-3-oneP" onclick="toggleTag(3, 'oneP')">ワンペナ(-5)</button>
+          <button class="btn-tag" id="tag-3-gold" onclick="toggleOlympic(3, 'gold')">金(各2P)</button>
+          <button class="btn-tag" id="tag-3-silver" onclick="toggleOlympic(3, 'silver')">銀(各1P)</button>
+          <button class="btn-tag" id="tag-3-bronze" onclick="toggleOlympic(3, 'bronze')">銅(各1P)</button>
+          <button class="btn-tag" id="tag-3-iron" onclick="toggleOlympic(3, 'iron')">鉄(各1P)</button>
+          <button class="btn-tag" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')">ダイヤ(各3P)</button>
+          <button class="btn-tag" id="tag-3-putt3" onclick="toggleTag(3, 'putt3')">3パット(各-2P)</button>
+          <button class="btn-tag" id="tag-3-bunker" onclick="toggleTag(3, 'bunker')">砂遊び(各-2P)</button>
+          <button class="btn-tag" id="tag-3-pond" onclick="toggleTag(3, 'pond')">池ポチャ(各-2P)</button>
+          <button class="btn-tag" id="tag-3-oneP" onclick="toggleTag(3, 'oneP')">ワンペナ(各-2P)</button>
         </div>
       </div>
     </div>
@@ -267,7 +263,6 @@
     <button class="btn-undo" id="btn-undo" onclick="undoHole()" style="display:none;">↩️ 直前のホールを取り消す（1ホール戻る）</button>
   </div>
 
-  <!-- 結果表示エリア -->
   <div class="card" id="result-section" style="display:none;">
     <h2>現在の累計スコア</h2>
     <table>
@@ -291,7 +286,7 @@
     let currentScores = [4, 4, 4, 4];
 
     let carriedTeamAIds = null;
-    let historyStack = []; // 履歴保存スタック
+    let historyStack = [];
 
     let playerEvents = [
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
@@ -545,7 +540,6 @@
 
       document.getElementById('pair-display').innerHTML = pairText;
 
-      // 「元に戻す」ボタンの表示制御
       const undoBtn = document.getElementById('btn-undo');
       if (historyStack.length > 0) {
         undoBtn.style.display = 'block';
@@ -586,7 +580,6 @@
     }
 
     function calculateHole() {
-      // 履歴スタックへ現在の完全な状態を保存
       historyStack.push({
         playerOrder: JSON.parse(JSON.stringify(playerOrder)),
         currentHole,
@@ -599,23 +592,28 @@
       const rule = document.getElementById('hdcpRule').value;
       const rawScores = [...currentScores];
 
-      // 1. オリンピック & ペナルティ加減算
+      // 1. オリンピック & ペナルティ全員精算処理（総和ゼロを保持）
       for (let i = 0; i < 4; i++) {
-        let bonusPenalty = 0;
-
         const oly = playerEvents[i].olympic;
-        if (oly === 'gold') bonusPenalty += 8;
-        if (oly === 'silver') bonusPenalty += 5;
-        if (oly === 'bronze') bonusPenalty += 3;
-        if (oly === 'iron') bonusPenalty += 1;
-        if (oly === 'dia') bonusPenalty += 10;
+        let rate = 0;
 
-        if (playerEvents[i].putt3) bonusPenalty -= 5;
-        if (playerEvents[i].bunker) bonusPenalty -= 5;
-        if (playerEvents[i].pond) bonusPenalty -= 5;
-        if (playerEvents[i].oneP) bonusPenalty -= 5;
+        if (oly === 'gold') rate = 2;   // 金: 他3人から各2P (獲得: +6P / 他3人: 各-2P)
+        if (oly === 'silver') rate = 1; // 銀: 他3人から各1P (獲得: +3P / 他3人: 各-1P)
+        if (oly === 'bronze') rate = 1; // 銅: 他3人から各1P (獲得: +3P / 他3人: 各-1P)
+        if (oly === 'iron') rate = 1;   // 鉄: 他3人から各1P (獲得: +3P / 他3人: 各-1P)
+        if (oly === 'dia') rate = 3;    // ダイヤ: 他3人から各3P (獲得: +9P / 他3人: 各-3P)
 
-        playerOrder[i].points += bonusPenalty;
+        if (rate > 0) {
+          addChipPoints(playerOrder[i].id, rate);
+        }
+
+        // ペナルティ: 他3人へ各2P支払い (支払い: -6P / 他3人: 各+2P)
+        const penKeys = ['putt3', 'bunker', 'pond', 'oneP'];
+        penKeys.forEach(k => {
+          if (playerEvents[i][k]) {
+            payPenaltyPoints(playerOrder[i].id, 2);
+          }
+        });
       }
 
       // 2. ニアピン・ドラコン処理
@@ -700,7 +698,6 @@
       renderTable();
     }
 
-    // 1ホール戻す（直前の取り消し）関数
     function undoHole() {
       if (historyStack.length === 0) return;
 
@@ -720,12 +717,22 @@
       }
     }
 
-    function addChipPoints(winnerId, prize) {
+    function addChipPoints(winnerId, rate) {
       playerOrder.forEach(p => {
         if (p.id === winnerId) {
-          p.points += (prize * 3);
+          p.points += (rate * 3);
         } else {
-          p.points -= prize;
+          p.points -= rate;
+        }
+      });
+    }
+
+    function payPenaltyPoints(loserId, rate) {
+      playerOrder.forEach(p => {
+        if (p.id === loserId) {
+          p.points -= (rate * 3);
+        } else {
+          p.points += rate;
         }
       });
     }
