@@ -58,18 +58,39 @@
     .btn-cnt:active { background: #cbd5e1; }
     .score-val { flex: 1; text-align: center; font-size: 1.2em; font-weight: bold; background: white; border: 1px solid #ccc; border-radius: 6px; padding: 6px 0; }
 
-    /* 特殊イベント・オリンピック・ペナタグ（ON/OFF切り替え） */
-    .event-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    /* イベント・グループ分け見出し */
+    .tag-section-label { font-size: 0.68em; font-weight: bold; margin-top: 6px; margin-bottom: 2px; width: 100%; display: block; }
+    .label-bonus { color: #15803d; }
+    .label-penalty { color: #b91c1c; }
+
+    /* 特殊イベント・オリンピック・ペナタグ（視覚的デザイン刷新） */
+    .event-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+    
+    /* 基本ボタン */
     .btn-tag {
-      font-size: 0.72em; font-weight: bold; padding: 4px 6px; border-radius: 4px;
-      border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer; margin-top: 0; width: auto; flex: 1 1 auto;
+      font-size: 0.7em; font-weight: bold; padding: 4px 5px; border-radius: 5px;
+      cursor: pointer; margin-top: 0; width: auto; flex: 1 1 calc(50% - 4px); text-align: center;
+      transition: all 0.15s ease;
     }
-    .btn-tag.active-gold { background: #fef08a; color: #854d0e; border-color: #eab308; }
-    .btn-tag.active-silver { background: #f1f5f9; color: #334155; border-color: #94a3b8; }
-    .btn-tag.active-bronze { background: #ffedd5; color: #9a3412; border-color: #fdba74; }
-    .btn-tag.active-iron { background: #e2e8f0; color: #475569; border-color: #cbd5e1; }
-    .btn-tag.active-dia { background: #e0f2fe; color: #0369a1; border-color: #38bdf8; }
-    .btn-tag.active-minus { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+    /* ボーナスボタン（ベース：薄い緑背景） */
+    .btn-tag-bonus {
+      background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;
+    }
+
+    /* ペナルティボタン（ベース：薄い赤背景） */
+    .btn-tag-penalty {
+      background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+    }
+
+    /* アクティブ（選択中）状態デザイン */
+    .btn-tag.active-gold { background: #fde047; color: #713f12; border-color: #ca8a04; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .btn-tag.active-silver { background: #e2e8f0; color: #1e293b; border-color: #64748b; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .btn-tag.active-bronze { background: #ffedd5; color: #7c2d12; border-color: #ea580c; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .btn-tag.active-iron { background: #cbd5e1; color: #334155; border-color: #475569; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .btn-tag.active-dia { background: #38bdf8; color: #ffffff; border-color: #0284c7; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    
+    .btn-tag.active-minus { background: #ef4444; color: #ffffff; border-color: #b91c1c; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 
     /* 打順バッジ */
     .order-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8em; font-weight: bold; padding: 2px 6px; border-radius: 12px; margin-bottom: 4px; }
@@ -93,6 +114,7 @@
 
   <h1>ゴルフ計算アプリ</h1>
 
+  <!-- 設定エリア -->
   <div class="card" id="setup-section">
     <h2>1. プレイヤー登録 & スタート打順</h2>
     <p style="font-size:0.85em; color:#666; margin-top:-5px;">※最初のホール（1番ホール）の打順を選択してください</p>
@@ -153,6 +175,7 @@
     <button class="btn-submit" onclick="startGame()">ゲーム開始</button>
   </div>
 
+  <!-- スコア入力エリア -->
   <div class="card" id="game-section" style="display:none;">
     <h2 id="hole-title">1番ホール</h2>
     <div class="pair-info" id="pair-display"></div>
@@ -172,6 +195,7 @@
       </div>
     </div>
 
+    <!-- チップ（ニアピン・ドラコン）入力領域 -->
     <div class="chip-box" id="chip-container" style="display:none;">
       <label id="chip-title">🚩 ニアピン対象ホール (10P)</label>
       <select id="chip-winner-select"></select>
@@ -180,6 +204,7 @@
 
     <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数と該当のボーナス/ペナルティを選択してください</p>
 
+    <!-- 打数カウンタ＆オリンピック・ペナタグ選択 -->
     <div class="grid">
       <div class="player-card" id="card-0">
         <div class="order-tag order-tag-1">👑 1番 (オナー)</div>
@@ -189,16 +214,22 @@
           <div class="score-val" id="score-val-0">4</div>
           <button class="btn-cnt" onclick="changeScore(0, 1)">+</button>
         </div>
+        
+        <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-0-gold" onclick="toggleOlympic(0, 'gold')">金(各2P)</button>
-          <button class="btn-tag" id="tag-0-silver" onclick="toggleOlympic(0, 'silver')">銀(各1P)</button>
-          <button class="btn-tag" id="tag-0-bronze" onclick="toggleOlympic(0, 'bronze')">銅(各1P)</button>
-          <button class="btn-tag" id="tag-0-iron" onclick="toggleOlympic(0, 'iron')">鉄(各1P)</button>
-          <button class="btn-tag" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')">ダイヤ(各3P)</button>
-          <button class="btn-tag" id="tag-0-putt3" onclick="toggleTag(0, 'putt3')">3パット(各-2P)</button>
-          <button class="btn-tag" id="tag-0-bunker" onclick="toggleTag(0, 'bunker')">砂遊び(各-2P)</button>
-          <button class="btn-tag" id="tag-0-pond" onclick="toggleTag(0, 'pond')">池ポチャ(各-2P)</button>
-          <button class="btn-tag" id="tag-0-oneP" onclick="toggleTag(0, 'oneP')">ワンペナ(各-2P)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-gold" onclick="toggleOlympic(0, 'gold')">🥇金 (+2)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-silver" onclick="toggleOlympic(0, 'silver')">🥈銀 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-bronze" onclick="toggleOlympic(0, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-iron" onclick="toggleOlympic(0, 'iron')">鉄 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-0-dia" onclick="toggleOlympic(0, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+        </div>
+
+        <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
+        <div class="event-tags">
+          <button class="btn-tag btn-tag-penalty" id="tag-0-putt3" onclick="toggleTag(0, 'putt3')">3パット(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-0-bunker" onclick="toggleTag(0, 'bunker')">砂遊び(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-0-pond" onclick="toggleTag(0, 'pond')">池ポチャ(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-0-oneP" onclick="toggleTag(0, 'oneP')">ワンペナ(-2)</button>
         </div>
       </div>
       
@@ -210,16 +241,22 @@
           <div class="score-val" id="score-val-1">4</div>
           <button class="btn-cnt" onclick="changeScore(1, 1)">+</button>
         </div>
+        
+        <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-1-gold" onclick="toggleOlympic(1, 'gold')">金(各2P)</button>
-          <button class="btn-tag" id="tag-1-silver" onclick="toggleOlympic(1, 'silver')">銀(各1P)</button>
-          <button class="btn-tag" id="tag-1-bronze" onclick="toggleOlympic(1, 'bronze')">銅(各1P)</button>
-          <button class="btn-tag" id="tag-1-iron" onclick="toggleOlympic(1, 'iron')">鉄(各1P)</button>
-          <button class="btn-tag" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')">ダイヤ(各3P)</button>
-          <button class="btn-tag" id="tag-1-putt3" onclick="toggleTag(1, 'putt3')">3パット(各-2P)</button>
-          <button class="btn-tag" id="tag-1-bunker" onclick="toggleTag(1, 'bunker')">砂遊び(各-2P)</button>
-          <button class="btn-tag" id="tag-1-pond" onclick="toggleTag(1, 'pond')">池ポチャ(各-2P)</button>
-          <button class="btn-tag" id="tag-1-oneP" onclick="toggleTag(1, 'oneP')">ワンペナ(各-2P)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-gold" onclick="toggleOlympic(1, 'gold')">🥇金 (+2)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-silver" onclick="toggleOlympic(1, 'silver')">🥈銀 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-bronze" onclick="toggleOlympic(1, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-iron" onclick="toggleOlympic(1, 'iron')">鉄 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-1-dia" onclick="toggleOlympic(1, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+        </div>
+
+        <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
+        <div class="event-tags">
+          <button class="btn-tag btn-tag-penalty" id="tag-1-putt3" onclick="toggleTag(1, 'putt3')">3パット(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-1-bunker" onclick="toggleTag(1, 'bunker')">砂遊び(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-1-pond" onclick="toggleTag(1, 'pond')">池ポチャ(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-1-oneP" onclick="toggleTag(1, 'oneP')">ワンペナ(-2)</button>
         </div>
       </div>
       
@@ -231,16 +268,22 @@
           <div class="score-val" id="score-val-2">4</div>
           <button class="btn-cnt" onclick="changeScore(2, 1)">+</button>
         </div>
+        
+        <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-2-gold" onclick="toggleOlympic(2, 'gold')">金(各2P)</button>
-          <button class="btn-tag" id="tag-2-silver" onclick="toggleOlympic(2, 'silver')">銀(各1P)</button>
-          <button class="btn-tag" id="tag-2-bronze" onclick="toggleOlympic(2, 'bronze')">銅(各1P)</button>
-          <button class="btn-tag" id="tag-2-iron" onclick="toggleOlympic(2, 'iron')">鉄(各1P)</button>
-          <button class="btn-tag" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')">ダイヤ(各3P)</button>
-          <button class="btn-tag" id="tag-2-putt3" onclick="toggleTag(2, 'putt3')">3パット(各-2P)</button>
-          <button class="btn-tag" id="tag-2-bunker" onclick="toggleTag(2, 'bunker')">砂遊び(各-2P)</button>
-          <button class="btn-tag" id="tag-2-pond" onclick="toggleTag(2, 'pond')">池ポチャ(各-2P)</button>
-          <button class="btn-tag" id="tag-2-oneP" onclick="toggleTag(2, 'oneP')">ワンペナ(各-2P)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-gold" onclick="toggleOlympic(2, 'gold')">🥇金 (+2)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-silver" onclick="toggleOlympic(2, 'silver')">🥈銀 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-bronze" onclick="toggleOlympic(2, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-iron" onclick="toggleOlympic(2, 'iron')">鉄 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-2-dia" onclick="toggleOlympic(2, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+        </div>
+
+        <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
+        <div class="event-tags">
+          <button class="btn-tag btn-tag-penalty" id="tag-2-putt3" onclick="toggleTag(2, 'putt3')">3パット(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-2-bunker" onclick="toggleTag(2, 'bunker')">砂遊び(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-2-pond" onclick="toggleTag(2, 'pond')">池ポチャ(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-2-oneP" onclick="toggleTag(2, 'oneP')">ワンペナ(-2)</button>
         </div>
       </div>
       
@@ -252,16 +295,22 @@
           <div class="score-val" id="score-val-3">4</div>
           <button class="btn-cnt" onclick="changeScore(3, 1)">+</button>
         </div>
+        
+        <span class="tag-section-label label-bonus">✨ オリンピック</span>
         <div class="event-tags">
-          <button class="btn-tag" id="tag-3-gold" onclick="toggleOlympic(3, 'gold')">金(各2P)</button>
-          <button class="btn-tag" id="tag-3-silver" onclick="toggleOlympic(3, 'silver')">銀(各1P)</button>
-          <button class="btn-tag" id="tag-3-bronze" onclick="toggleOlympic(3, 'bronze')">銅(各1P)</button>
-          <button class="btn-tag" id="tag-3-iron" onclick="toggleOlympic(3, 'iron')">鉄(各1P)</button>
-          <button class="btn-tag" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')">ダイヤ(各3P)</button>
-          <button class="btn-tag" id="tag-3-putt3" onclick="toggleTag(3, 'putt3')">3パット(各-2P)</button>
-          <button class="btn-tag" id="tag-3-bunker" onclick="toggleTag(3, 'bunker')">砂遊び(各-2P)</button>
-          <button class="btn-tag" id="tag-3-pond" onclick="toggleTag(3, 'pond')">池ポチャ(各-2P)</button>
-          <button class="btn-tag" id="tag-3-oneP" onclick="toggleTag(3, 'oneP')">ワンペナ(各-2P)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-gold" onclick="toggleOlympic(3, 'gold')">🥇金 (+2)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-silver" onclick="toggleOlympic(3, 'silver')">🥈銀 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-bronze" onclick="toggleOlympic(3, 'bronze')">🥉銅 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-iron" onclick="toggleOlympic(3, 'iron')">鉄 (+1)</button>
+          <button class="btn-tag btn-tag-bonus" id="tag-3-dia" onclick="toggleOlympic(3, 'dia')" style="flex:1 1 100%;">💎ダイヤ (+3)</button>
+        </div>
+
+        <span class="tag-section-label label-penalty">⚠️ ペナルティ</span>
+        <div class="event-tags">
+          <button class="btn-tag btn-tag-penalty" id="tag-3-putt3" onclick="toggleTag(3, 'putt3')">3パット(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-3-bunker" onclick="toggleTag(3, 'bunker')">砂遊び(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-3-pond" onclick="toggleTag(3, 'pond')">池ポチャ(-2)</button>
+          <button class="btn-tag btn-tag-penalty" id="tag-3-oneP" onclick="toggleTag(3, 'oneP')">ワンペナ(-2)</button>
         </div>
       </div>
     </div>
@@ -270,6 +319,7 @@
     <button class="btn-undo" id="btn-undo" onclick="undoHole()" style="display:none;">↩️ 直前のホールを取り消す（1ホール戻る）</button>
   </div>
 
+  <!-- 結果表示エリア -->
   <div class="card" id="result-section" style="display:none;">
     <h2 id="result-title">現在の累計スコア</h2>
     <div style="overflow-x:auto;">
@@ -314,7 +364,7 @@
 
     let carriedTeamAIds = null;
     let historyStack = [];
-    let holeLogs = []; // 全ホールの入力ログ保存用
+    let holeLogs = [];
 
     let playerEvents = [
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
@@ -488,7 +538,7 @@
         olyKeys.forEach(k => {
           const btn = document.getElementById(`tag-${i}-${k}`);
           if (btn) {
-            btn.className = 'btn-tag';
+            btn.className = 'btn-tag btn-tag-bonus';
             if (playerEvents[i].olympic === k) {
               btn.classList.add(`active-${k}`);
             }
@@ -498,7 +548,7 @@
         penKeys.forEach(k => {
           const btn = document.getElementById(`tag-${i}-${k}`);
           if (btn) {
-            btn.classList.remove('active-minus');
+            btn.className = 'btn-tag btn-tag-penalty';
             if (playerEvents[i][k]) {
               btn.classList.add('active-minus');
             }
@@ -640,7 +690,6 @@
       const rawScores = [...currentScores];
       const { teamA, teamB } = getCurrentTeams();
 
-      // ログ用データの作成
       let currentLog = {
         hole: currentHole,
         par: currentPar,
@@ -820,7 +869,6 @@
     }
 
     function renderTable() {
-      // 累計ポイントテーブルの描画
       const tbody = document.getElementById('score-table-body');
       tbody.innerHTML = '';
       
@@ -831,7 +879,6 @@
         tbody.appendChild(tr);
       });
 
-      // 履歴テーブルのヘッダー＆データ描画
       const historyHeader = document.getElementById('history-header');
       historyHeader.innerHTML = `<th>H</th><th>PAR</th>`;
       sortedById.forEach(p => {
@@ -842,11 +889,12 @@
       const historyBody = document.getElementById('history-table-body');
       historyBody.innerHTML = '';
 
+      // ダイヤの表記を「ダ」に変更
+      const olyLabel = { gold: '金', silver: '銀', bronze: '銅', iron: '鉄', dia: 'ダ' };
+
       holeLogs.forEach(log => {
         const tr = document.createElement('tr');
         let html = `<td><b>${log.hole}</b></td><td>${log.par}</td>`;
-
-        const olyLabel = { gold: '金', silver: '銀', bronze: '銅', iron: '鉄', dia: '図' };
 
         sortedById.forEach(p => {
           const score = log.scores[p.id];
