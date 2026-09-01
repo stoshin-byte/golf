@@ -18,8 +18,8 @@
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .player-row { display: grid; grid-template-columns: 90px 1fr 80px; gap: 8px; align-items: center; margin-bottom: 8px; }
     .player-row label { margin-top: 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85em; }
+    th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; }
     th { background: #eef2f5; }
     
     /* 対戦ペア表示バッジ */
@@ -81,6 +81,12 @@
     .player-name-title { font-size: 1em; font-weight: bold; margin-bottom: 2px; }
     .team-a-box .player-name-title { color: #1e40af; }
     .team-b-box .player-name-title { color: #9a3412; }
+
+    /* 履歴テーブル用CSS */
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    .history-tag { font-size: 0.75em; padding: 1px 4px; border-radius: 3px; display: inline-block; margin: 1px; }
+    .tag-blue { background: #dbeafe; color: #1e3a8a; }
+    .tag-orange { background: #ffedd5; color: #7c2d12; }
   </style>
 </head>
 <body>
@@ -139,6 +145,7 @@
     <label>ハンディ適用条件</label>
     <select id="hdcpRule">
       <option value="par45">PAR 4, 5 のみ適用</option>
+      <option value="par4">PAR 4 のみ適用</option>
       <option value="everyone">全ホール適用 (エブリワン)</option>
       <option value="none">ハンディなし</option>
     </select>
@@ -264,16 +271,36 @@
   </div>
 
   <div class="card" id="result-section" style="display:none;">
-    <h2>現在の累計スコア</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>名前</th>
-          <th>累積ポイント</th>
-        </tr>
-      </thead>
-      <tbody id="score-table-body"></tbody>
-    </table>
+    <h2 id="result-title">現在の累計スコア</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>名前</th>
+            <th>累積ポイント</th>
+          </tr>
+        </thead>
+        <tbody id="score-table-body"></tbody>
+      </table>
+    </div>
+
+    <h2 style="margin-top:20px;">ホール別入力履歴</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr id="history-header">
+            <th>H</th>
+            <th>PAR</th>
+            <th>A</th>
+            <th>B</th>
+            <th>C</th>
+            <th>D</th>
+            <th>チップ</th>
+          </tr>
+        </thead>
+        <tbody id="history-table-body"></tbody>
+      </table>
+    </div>
 
     <button class="btn-reset" onclick="resetGame()">データをリセットして新ゲーム</button>
   </div>
@@ -287,6 +314,7 @@
 
     let carriedTeamAIds = null;
     let historyStack = [];
+    let holeLogs = []; // 全ホールの入力ログ保存用
 
     let playerEvents = [
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
@@ -309,6 +337,7 @@
         doraConCarry,
         carriedTeamAIds,
         historyStack,
+        holeLogs,
         hdcpRuleSetting: document.getElementById('hdcpRule').value
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -320,7 +349,7 @@
         try {
           const state = JSON.parse(saved);
           if (state && state.playerOrder && state.playerOrder.length === 4) {
-            if (confirm(`保存されたデータがあります（${state.currentHole}番ホール途中）。前回の続きから再開しますか？`)) {
+            if (confirm(`保存されたデータがあります（${state.currentHole > 18 ? '最終結果' : state.currentHole + '番ホール途中'}）。前回の続きから再開しますか？`)) {
               playerOrder = state.playerOrder;
               currentHole = state.currentHole;
               carryOverPoints = state.carryOverPoints || 0;
@@ -328,15 +357,23 @@
               doraConCarry = state.doraConCarry || 0;
               carriedTeamAIds = state.carriedTeamAIds || null;
               historyStack = state.historyStack || [];
+              holeLogs = state.holeLogs || [];
+
               if (state.hdcpRuleSetting) {
                 document.getElementById('hdcpRule').value = state.hdcpRuleSetting;
               }
 
               document.getElementById('setup-section').style.display = 'none';
-              document.getElementById('game-section').style.display = 'block';
               document.getElementById('result-section').style.display = 'block';
 
-              updateHoleUI();
+              if (currentHole <= 18) {
+                document.getElementById('game-section').style.display = 'block';
+                updateHoleUI();
+              } else {
+                document.getElementById('game-section').style.display = 'none';
+                document.getElementById('result-title').innerText = "🏆 最終確定スコア (全18ホール終了)";
+              }
+
               renderTable();
               return true;
             }
@@ -507,6 +544,15 @@
     }
 
     function updateHoleUI() {
+      if (currentHole > 18) {
+        document.getElementById('game-section').style.display = 'none';
+        document.getElementById('result-title').innerText = "🏆 最終確定スコア (全18ホール終了)";
+        alert("18ホールすべて終了しました！お疲れ様でした。");
+        return;
+      }
+
+      document.getElementById('game-section').style.display = 'block';
+      document.getElementById('result-title').innerText = "現在の累計スコア";
       document.getElementById('hole-title').innerText = `${currentHole}番ホール`;
       document.getElementById('carry-display').value = `${carryOverPoints} 点`;
 
@@ -586,28 +632,48 @@
         carryOverPoints,
         nearPinCarry,
         doraConCarry,
-        carriedTeamAIds: carriedTeamAIds ? [...carriedTeamAIds] : null
+        carriedTeamAIds: carriedTeamAIds ? [...carriedTeamAIds] : null,
+        holeLogs: JSON.parse(JSON.stringify(holeLogs))
       });
 
       const rule = document.getElementById('hdcpRule').value;
       const rawScores = [...currentScores];
+      const { teamA, teamB } = getCurrentTeams();
 
-      // 1. オリンピック & ペナルティ全員精算処理（総和ゼロを保持）
+      // ログ用データの作成
+      let currentLog = {
+        hole: currentHole,
+        par: currentPar,
+        scores: {},
+        events: {},
+        teams: {
+          teamAIds: teamA.map(t => t.player.id),
+          teamBIds: teamB.map(t => t.player.id)
+        },
+        chipWinner: null
+      };
+
+      for (let i = 0; i < 4; i++) {
+        const pId = playerOrder[i].id;
+        currentLog.scores[pId] = rawScores[i];
+        currentLog.events[pId] = { ...playerEvents[i] };
+      }
+
+      // 1. オリンピック & ペナルティ処理
       for (let i = 0; i < 4; i++) {
         const oly = playerEvents[i].olympic;
         let rate = 0;
 
-        if (oly === 'gold') rate = 2;   // 金: 他3人から各2P (獲得: +6P / 他3人: 各-2P)
-        if (oly === 'silver') rate = 1; // 銀: 他3人から各1P (獲得: +3P / 他3人: 各-1P)
-        if (oly === 'bronze') rate = 1; // 銅: 他3人から各1P (獲得: +3P / 他3人: 各-1P)
-        if (oly === 'iron') rate = 1;   // 鉄: 他3人から各1P (獲得: +3P / 他3人: 各-1P)
-        if (oly === 'dia') rate = 3;    // ダイヤ: 他3人から各3P (獲得: +9P / 他3人: 各-3P)
+        if (oly === 'gold') rate = 2;
+        if (oly === 'silver') rate = 1;
+        if (oly === 'bronze') rate = 1;
+        if (oly === 'iron') rate = 1;
+        if (oly === 'dia') rate = 3;
 
         if (rate > 0) {
           addChipPoints(playerOrder[i].id, rate);
         }
 
-        // ペナルティ: 他3人へ各2P支払い (支払い: -6P / 他3人: 各+2P)
         const penKeys = ['putt3', 'bunker', 'pond', 'oneP'];
         penKeys.forEach(k => {
           if (playerEvents[i][k]) {
@@ -619,6 +685,11 @@
       // 2. ニアピン・ドラコン処理
       if (currentPar === 3 || currentPar === 5) {
         const winnerId = parseInt(document.getElementById('chip-winner-select').value);
+        if (winnerId !== -1) {
+          const wPlayer = playerOrder.find(p => p.id === winnerId);
+          currentLog.chipWinner = wPlayer ? wPlayer.name : null;
+        }
+
         if (currentPar === 3) {
           if (winnerId !== -1) {
             addChipPoints(winnerId, 10 + nearPinCarry);
@@ -639,15 +710,18 @@
       // 3. ハンディ減算 ➔ 9打上限処理
       const finalScores = rawScores.map((score, idx) => {
         let hdcp = playerOrder[idx].hdcp;
-        if (rule === 'none' || (rule === 'par45' && currentPar === 3)) {
-          hdcp = 0;
-        }
+        let applyHdcp = false;
+        if (rule === 'everyone') applyHdcp = true;
+        else if (rule === 'par45' && (currentPar === 4 || currentPar === 5)) applyHdcp = true;
+        else if (rule === 'par4' && currentPar === 4) applyHdcp = true;
+
+        if (!applyHdcp) hdcp = 0;
+
         let adjusted = score - hdcp;
         return adjusted >= 9 ? 9 : adjusted;
       });
 
-      // 4. ペア構成の決定と計算
-      const { teamA, teamB } = getCurrentTeams();
+      // 4. ペア構成の計算
       const scoreA = buildTeamScore(finalScores[teamA[0].index], finalScores[teamA[1].index], currentPar);
       const scoreB = buildTeamScore(finalScores[teamB[0].index], finalScores[teamB[1].index], currentPar);
 
@@ -676,7 +750,7 @@
         alert("ラスベガス引き分けのため、チームを固定して10点を次のホールへ持ち越します！");
       }
 
-      // 6. 次ホールの打順決め（実打数ベース、同打数は前打順維持）
+      // 6. 次ホールの打順決め
       let lastPerformance = playerOrder.map((p, idx) => ({
         player: p,
         rawScore: rawScores[idx],
@@ -692,6 +766,7 @@
 
       playerOrder = lastPerformance.map(item => item.player);
 
+      holeLogs.push(currentLog);
       currentHole++;
       saveData();
       updateHoleUI();
@@ -710,6 +785,7 @@
         nearPinCarry = lastState.nearPinCarry;
         doraConCarry = lastState.doraConCarry;
         carriedTeamAIds = lastState.carriedTeamAIds;
+        holeLogs = lastState.holeLogs || [];
 
         saveData();
         updateHoleUI();
@@ -744,14 +820,53 @@
     }
 
     function renderTable() {
+      // 累計ポイントテーブルの描画
       const tbody = document.getElementById('score-table-body');
       tbody.innerHTML = '';
       
       let sortedById = [...playerOrder].sort((a, b) => a.id - b.id);
       sortedById.forEach(p => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${p.name}</td><td>${p.points} 点</td>`;
+        tr.innerHTML = `<td><b>${p.name}</b></td><td><b>${p.points} 点</b></td>`;
         tbody.appendChild(tr);
+      });
+
+      // 履歴テーブルのヘッダー＆データ描画
+      const historyHeader = document.getElementById('history-header');
+      historyHeader.innerHTML = `<th>H</th><th>PAR</th>`;
+      sortedById.forEach(p => {
+        historyHeader.innerHTML += `<th>${p.name}</th>`;
+      });
+      historyHeader.innerHTML += `<th>チップ</th>`;
+
+      const historyBody = document.getElementById('history-table-body');
+      historyBody.innerHTML = '';
+
+      holeLogs.forEach(log => {
+        const tr = document.createElement('tr');
+        let html = `<td><b>${log.hole}</b></td><td>${log.par}</td>`;
+
+        const olyLabel = { gold: '金', silver: '銀', bronze: '銅', iron: '鉄', dia: '図' };
+
+        sortedById.forEach(p => {
+          const score = log.scores[p.id];
+          const ev = log.events[p.id];
+          const isTeamA = log.teams.teamAIds.includes(p.id);
+          const badgeClass = isTeamA ? 'tag-blue' : 'tag-orange';
+
+          let evText = '';
+          if (ev.olympic) evText += `<span style="color:#d97706;font-weight:bold;">[${olyLabel[ev.olympic]}]</span>`;
+          if (ev.putt3) evText += `<span style="color:#dc2626;">[3P]</span>`;
+          if (ev.bunker) evText += `<span style="color:#dc2626;">[砂]</span>`;
+          if (ev.pond) evText += `<span style="color:#dc2626;">[池]</span>`;
+          if (ev.oneP) evText += `<span style="color:#dc2626;">[ペ]</span>`;
+
+          html += `<td><span class="history-tag ${badgeClass}">${score}打</span>${evText ? '<br>'+evText : ''}</td>`;
+        });
+
+        html += `<td>${log.chipWinner ? log.chipWinner : '-'}</td>`;
+        tr.innerHTML = html;
+        historyBody.appendChild(tr);
       });
     }
 
