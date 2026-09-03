@@ -594,12 +594,22 @@
     </div>
   </div>
 
-  <!-- スコア修正用モーダル -->
+  <!-- スコア・PAR修正用モーダル -->
   <div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h2 id="edit-modal-title">スコア・ハンディ修正</h2>
+        <h2 id="edit-modal-title">スコア・PAR修正</h2>
         <button class="btn-close-modal" onclick="closeEditModal()">✕</button>
+      </div>
+
+      <!-- 規定打数(PAR)変更エリア -->
+      <div style="background:#f1f5f9; border:1px solid #cbd5e1; padding:10px; border-radius:8px; margin-bottom:15px;">
+        <label style="margin-top:0; font-size:0.9em; color:#1e293b;">⛳️ 規定打数 (PAR) の変更</label>
+        <div class="par-btn-group" style="margin-top:8px;">
+          <button class="btn-par" id="btn-edit-par3" onclick="setEditPar(3)">PAR 3</button>
+          <button class="btn-par" id="btn-edit-par4" onclick="setEditPar(4)">PAR 4</button>
+          <button class="btn-par" id="btn-edit-par5" onclick="setEditPar(5)">PAR 5</button>
+        </div>
       </div>
 
       <div id="edit-modal-body"></div>
@@ -620,6 +630,7 @@
     let historyStack = [];
     let holeLogs = [];
     let editingHoleIndex = -1;
+    let editingCurrentPar = 4; // モーダル内で編集中のPAR
 
     let playerEvents = [
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
@@ -1201,17 +1212,45 @@
       }
     }
 
-    // 修正モーダルを開く（打数・イベント・ハンディ情報を表示）
+    // 修正モーダル内のPAR切り替えボタン処理
+    function setEditPar(parVal) {
+      editingCurrentPar = parVal;
+      [3, 4, 5].forEach(val => {
+        const btn = document.getElementById(`btn-edit-par${val}`);
+        if (btn) {
+          if (val === parVal) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+
+      const chipBox = document.getElementById('edit-chip-box');
+      if (chipBox) {
+        if (parVal === 3 || parVal === 5) {
+          chipBox.style.display = 'block';
+          const title = document.getElementById('edit-chip-title');
+          if (title) {
+            title.innerText = parVal === 3 ? '🚩 ニアピン獲得者' : '🏌️‍♂️ ドラコン獲得者';
+          }
+        } else {
+          chipBox.style.display = 'none';
+        }
+      }
+    }
+
+    // 修正モーダルを開く
     function openEditModal(index) {
       editingHoleIndex = index;
       const log = holeLogs[index];
-      document.getElementById('edit-modal-title').innerText = `${log.hole}番ホール (PAR${log.par}) スコア・ハンディ修正`;
+      editingCurrentPar = log.par || 4;
+
+      document.getElementById('edit-modal-title').innerText = `${log.hole}番ホール スコア・PAR修正`;
+      setEditPar(editingCurrentPar);
 
       const body = document.getElementById('edit-modal-body');
       body.innerHTML = '';
 
       initialPlayers.forEach(p => {
-        const score = log.scores[p.id] || log.par;
+        const score = log.scores[p.id] || editingCurrentPar;
         const ev = log.events[p.id] || {};
         const hdcp = p.hdcp || 0;
         const hdcpRule = p.hdcpRule || 'none';
@@ -1266,20 +1305,21 @@
         body.innerHTML += html;
       });
 
-      if (log.par === 3 || log.par === 5) {
-        let chipTitle = log.par === 3 ? '🚩 ニアピン獲得者' : '🏌️‍♂️ ドラコン獲得者';
-        let chipHtml = `
-          <div style="margin-top:10px; margin-bottom:10px;">
-            <label>${chipTitle}</label>
-            <select id="edit-chip-winner">
-              <option value="-1" ${log.chipWinnerId === -1 ? 'selected' : ''}>なし</option>
-        `;
-        initialPlayers.forEach(p => {
-          chipHtml += `<option value="${p.id}" ${log.chipWinnerId === p.id ? 'selected' : ''}>${p.name}</option>`;
-        });
-        chipHtml += `</select></div>`;
-        body.innerHTML += chipHtml;
-      }
+      // チップ選択エリア（PAR 3 / 5 の場合表示）
+      let chipTitleText = editingCurrentPar === 3 ? '🚩 ニアピン獲得者' : '🏌️‍♂️ ドラコン獲得者';
+      let chipDisplayStyle = (editingCurrentPar === 3 || editingCurrentPar === 5) ? 'block' : 'none';
+
+      let chipHtml = `
+        <div id="edit-chip-box" style="margin-top:10px; margin-bottom:10px; display:${chipDisplayStyle};">
+          <label id="edit-chip-title">${chipTitleText}</label>
+          <select id="edit-chip-winner">
+            <option value="-1" ${log.chipWinnerId === -1 ? 'selected' : ''}>なし</option>
+      `;
+      initialPlayers.forEach(p => {
+        chipHtml += `<option value="${p.id}" ${log.chipWinnerId === p.id ? 'selected' : ''}>${p.name}</option>`;
+      });
+      chipHtml += `</select></div>`;
+      body.innerHTML += chipHtml;
 
       document.getElementById('editModal').style.display = 'flex';
     }
@@ -1290,13 +1330,15 @@
       }
     }
 
-    // 修正内容を保存し、全体のスコア・ハンディ設定を反映して再計算
+    // 修正内容を保存
     function saveEditedHole() {
       if (editingHoleIndex < 0) return;
       const log = holeLogs[editingHoleIndex];
 
+      // PAR（規定打数）の更新
+      log.par = editingCurrentPar;
+
       initialPlayers.forEach(p => {
-        // 打数・イベントの保存
         log.scores[p.id] = parseInt(document.getElementById(`edit-score-${p.id}`).value) || log.par;
         log.events[p.id] = {
           olympic: document.getElementById(`edit-oly-${p.id}`).value || null,
@@ -1306,7 +1348,6 @@
           oneP: document.getElementById(`edit-oneP-${p.id}`).checked
         };
 
-        // ハンディ設定の更新（initialPlayers に反映）
         p.hdcp = parseInt(document.getElementById(`edit-hdcp-${p.id}`).value) || 0;
         p.hdcpRule = document.getElementById(`edit-hdcpRule-${p.id}`).value;
       });
@@ -1316,12 +1357,14 @@
         if (select) {
           log.chipWinnerId = parseInt(select.value);
         }
+      } else {
+        log.chipWinnerId = -1;
       }
 
       closeEditModal();
       recalculateAll();
       updateHoleUI();
-      alert(`${log.hole}番ホールの修正およびハンディ変更を反映し、全スコアを再計算しました！`);
+      alert(`${log.hole}番ホールの設定・スコア修正を反映し、全スコアを再計算しました！`);
     }
 
     function renderTable() {
