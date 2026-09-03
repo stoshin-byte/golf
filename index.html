@@ -87,7 +87,7 @@
     th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; }
     th { background: #eef2f5; }
     
-    /* 対戦ペア表示バッジ（文字数・デザイン統一版） */
+    /* 対戦ペア表示バッジ */
     .pair-info { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; line-height: 1.5; }
     
     .start-pair-preview {
@@ -724,6 +724,7 @@
     }
 
     function getRegisteredPlayers() {
+      // 画面の登録入力枠（ID 1〜4）のまま順番を固定保持
       const pData = [
         { 
           id: 1, 
@@ -767,19 +768,19 @@
         return null;
       }
 
-      pData.sort((a, b) => a.order - b.order);
       return pData;
     }
 
     function startGame() {
-      const initialOrder = getRegisteredPlayers();
-      if (!initialOrder) {
+      const regPlayers = getRegisteredPlayers();
+      if (!regPlayers) {
         alert("打順（1番〜4番）が重複しないように選んでください。");
         return;
       }
 
-      playerOrder = initialOrder;
-      initialPlayers = JSON.parse(JSON.stringify(initialOrder));
+      initialPlayers = JSON.parse(JSON.stringify(regPlayers));
+      // ゲームスタート時のオナー打順（1〜4番手）で並び替え
+      playerOrder = [...regPlayers].sort((a, b) => a.order - b.order);
 
       document.getElementById('setup-section').style.display = 'none';
       document.getElementById('game-section').style.display = 'block';
@@ -1025,7 +1026,7 @@
         pMap[p.id] = { id: p.id, name: p.name, hdcp: p.hdcp, hdcpRule: p.hdcpRule, order: p.order, points: 0 };
       });
 
-      let localOrder = [...initialPlayers].map(p => pMap[p.id]);
+      let localOrder = [...initialPlayers].sort((a, b) => a.order - b.order).map(p => pMap[p.id]);
       let localCarryOver = 0;
       let localNearPinCarry = 0;
       let localDoraConCarry = 0;
@@ -1284,8 +1285,8 @@
       const tbody = document.getElementById('score-table-body');
       tbody.innerHTML = '';
       
-      let sortedById = [...initialPlayers].sort((a, b) => a.id - b.id);
-      sortedById.forEach(p => {
+      // 最初に入力・登録した順番（ID順: 1〜4）を常に固定して表示
+      initialPlayers.forEach(p => {
         const curPlayer = playerOrder.find(item => item.id === p.id) || p;
         const tr = document.createElement('tr');
         tr.innerHTML = `<td><b>${curPlayer.name}</b></td><td><b>${curPlayer.points} 点</b></td>`;
@@ -1294,7 +1295,7 @@
 
       const historyHeader = document.getElementById('history-header');
       historyHeader.innerHTML = `<th>H</th><th>PAR</th>`;
-      sortedById.forEach(p => {
+      initialPlayers.forEach(p => {
         historyHeader.innerHTML += `<th>${p.name}</th>`;
       });
       historyHeader.innerHTML += `<th>チップ</th><th>修正</th>`;
@@ -1308,7 +1309,7 @@
         const tr = document.createElement('tr');
         let html = `<td><b>${log.hole}</b></td><td>${log.par}</td>`;
 
-        sortedById.forEach(p => {
+        initialPlayers.forEach(p => {
           const score = log.scores[p.id];
           const ev = log.events[p.id] || {};
           const isTeamA = log.teams && log.teams.teamAIds ? log.teams.teamAIds.includes(p.id) : false;
