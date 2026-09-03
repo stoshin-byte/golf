@@ -390,7 +390,7 @@
 
     <!-- チップ（ニアピン・ドラコン）入力領域 -->
     <div class="chip-box" id="chip-container" style="display:none;">
-      <label id="chip-title">🚩 ニアピン対象ホール (10P)</label>
+      <label id="chip-title">🚩 ニアピン対象ホール (他3人から各10P)</label>
       <select id="chip-winner-select"></select>
       <div style="font-size:0.8em; color:#854d0e; margin-top:4px;" id="chip-carry-info"></div>
     </div>
@@ -589,7 +589,7 @@
 
       <div class="rule-sec-title">5. 🚩 チップ（ドラコン・ニアピン）</div>
       <ul class="rule-list">
-        <li><b>PAR3(ニアピン) / PAR5(ドラコン)</b>: 勝者は他3人から各10P獲得（実質 +30P）。該当者なしは次回同PARへ全額持ち越し。</li>
+        <li><b>PAR3(ニアピン) / PAR5(ドラコン)</b>: 勝者は他3人から各10P獲得（勝者 +30P / 他3人各 -10P）。該当者なしは次回同PARへ全額持ち越し。</li>
       </ul>
     </div>
   </div>
@@ -598,7 +598,7 @@
   <div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h2 id="edit-modal-title">スコア修正</h2>
+        <h2 id="edit-modal-title">スコア・ハンディ修正</h2>
         <button class="btn-close-modal" onclick="closeEditModal()">✕</button>
       </div>
 
@@ -900,7 +900,6 @@
 
       const { teamA, teamB } = getCurrentTeams();
 
-      // 各ホールでの打順（オナー等）テキスト定義
       const orderBadgeTexts = [
         { text: '👑 1番 (オナー)', class: 'order-tag-1' },
         { text: '🥈 2番打者', class: 'order-tag-2' },
@@ -908,12 +907,9 @@
         { text: '4️⃣ 4番打者', class: 'order-tag-4' }
       ];
 
-      // カード表示位置（0〜3）は initialPlayers（初期登録順）で完全固定
       initialPlayers.forEach((p, i) => {
-        // 名前設定
         document.getElementById(`lbl-p${i+1}`).innerText = p.name;
 
-        // 打順判定 (playerOrder 内での現在のインデックス)
         const orderIdx = playerOrder.findIndex(po => po.id === p.id);
         const badgeElem = document.getElementById(`order-badge-${i}`);
         if (badgeElem && orderIdx !== -1) {
@@ -921,7 +917,6 @@
           badgeElem.innerText = orderBadgeTexts[orderIdx].text;
         }
 
-        // チーム判定 (チームA: 青 / チームB: 赤)
         const card = document.getElementById(`card-${i}`);
         card.className = 'player-card';
         if (teamA.some(t => t.player.id === p.id)) {
@@ -967,19 +962,22 @@
         container.style.display = 'block';
         select.innerHTML = '<option value="-1">なし（該当者なし）</option>';
         
-        // チップ選択枠も初期登録順（initialPlayers）で表示
         initialPlayers.forEach((p) => {
           select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
         });
 
         if (currentPar === 3) {
-          title.innerText = "🚩 ニアピン対象ホール (10P)";
-          const totalPrize = 10 + nearPinCarry;
-          info.innerText = nearPinCarry > 0 ? `※キャリーオーバー中！今回の獲得点数: ${totalPrize}点` : "※該当者なしの場合は次回PAR3へ全額持越し";
+          title.innerText = "🚩 ニアピン対象ホール";
+          const unit = 10 + nearPinCarry;
+          info.innerText = nearPinCarry > 0 
+            ? `※キャリーオーバー中！勝者 ＋${unit * 3}P （他3人各 −${unit}P）` 
+            : `※各10P精算：勝者 ＋30P （他3人各 −10P / 該当なしは次回持越し）`;
         } else {
-          title.innerText = "🏌️‍♂️ ドラコン対象ホール (10P)";
-          const totalPrize = 10 + doraConCarry;
-          info.innerText = doraConCarry > 0 ? `※キャリーオーバー中！今回の獲得点数: ${totalPrize}点` : "※該当者なしの場合は次回PAR5へ全額持越し";
+          title.innerText = "🏌️‍♂️ ドラコン対象ホール";
+          const unit = 10 + doraConCarry;
+          info.innerText = doraConCarry > 0 
+            ? `※キャリーオーバー中！勝者 ＋${unit * 3}P （他3人各 −${unit}P）` 
+            : `※各10P精算：勝者 ＋30P （他3人各 −10P / 該当なしは次回持越し）`;
         }
       } else {
         container.style.display = 'none';
@@ -1018,7 +1016,6 @@
         chipWinnerId: -1
       };
 
-      // 固定配置されているカード(0〜3)からスコアとイベントを正しく取得
       for (let i = 0; i < 4; i++) {
         const pId = initialPlayers[i].id;
         currentLog.scores[pId] = currentScores[i];
@@ -1101,10 +1098,10 @@
 
           if (log.par === 3) {
             if (winnerId !== -1) {
-              let prize = 10 + localNearPinCarry;
+              let unitPrize = 10 + localNearPinCarry;
               localOrder.forEach(target => {
-                if (target.id === winnerId) target.points += prize;
-                else target.points -= Math.floor(prize / 3);
+                if (target.id === winnerId) target.points += (unitPrize * 3);
+                else target.points -= unitPrize;
               });
               localNearPinCarry = 0;
             } else {
@@ -1112,10 +1109,10 @@
             }
           } else if (log.par === 5) {
             if (winnerId !== -1) {
-              let prize = 10 + localDoraConCarry;
+              let unitPrize = 10 + localDoraConCarry;
               localOrder.forEach(target => {
-                if (target.id === winnerId) target.points += prize;
-                else target.points -= Math.floor(prize / 3);
+                if (target.id === winnerId) target.points += (unitPrize * 3);
+                else target.points -= unitPrize;
               });
               localDoraConCarry = 0;
             } else {
@@ -1204,10 +1201,11 @@
       }
     }
 
+    // 修正モーダルを開く（打数・イベント・ハンディ情報を表示）
     function openEditModal(index) {
       editingHoleIndex = index;
       const log = holeLogs[index];
-      document.getElementById('edit-modal-title').innerText = `${log.hole}番ホール (PAR${log.par}) スコア修正`;
+      document.getElementById('edit-modal-title').innerText = `${log.hole}番ホール (PAR${log.par}) スコア・ハンディ修正`;
 
       const body = document.getElementById('edit-modal-body');
       body.innerHTML = '';
@@ -1215,31 +1213,54 @@
       initialPlayers.forEach(p => {
         const score = log.scores[p.id] || log.par;
         const ev = log.events[p.id] || {};
+        const hdcp = p.hdcp || 0;
+        const hdcpRule = p.hdcpRule || 'none';
 
         let html = `
           <div class="edit-player-box">
             <div class="edit-player-name">${p.name}</div>
-            <div class="edit-row-grid">
-              <label>打数:</label>
-              <input type="number" id="edit-score-${p.id}" value="${score}" min="1" max="15">
+            
+            <div style="background:#fff; border:1px solid #e2e8f0; padding:8px; border-radius:6px; margin-bottom:8px;">
+              <div class="edit-row-grid">
+                <label style="font-size:0.8em; color:#1e293b;">打数:</label>
+                <input type="number" id="edit-score-${p.id}" value="${score}" min="1" max="15">
+              </div>
+              <div class="edit-row-grid" style="margin-top:5px;">
+                <label style="font-size:0.8em; color:#1e293b;">オリンピック:</label>
+                <select id="edit-oly-${p.id}">
+                  <option value="" ${!ev.olympic ? 'selected' : ''}>なし</option>
+                  <option value="dia" ${ev.olympic === 'dia' ? 'selected' : ''}>💎 ダイヤ (+5)</option>
+                  <option value="gold" ${ev.olympic === 'gold' ? 'selected' : ''}>🥇 金 (+4)</option>
+                  <option value="silver" ${ev.olympic === 'silver' ? 'selected' : ''}>🥈 銀 (+3)</option>
+                  <option value="bronze" ${ev.olympic === 'bronze' ? 'selected' : ''}>🥉 銅 (+2)</option>
+                  <option value="iron" ${ev.olympic === 'iron' ? 'selected' : ''}>鉄 (+1)</option>
+                </select>
+              </div>
+              <div style="font-size:0.8em; margin-top:5px;">
+                <label><input type="checkbox" id="edit-putt3-${p.id}" ${ev.putt3 ? 'checked' : ''}> 3パット</label>
+                <label><input type="checkbox" id="edit-bunker-${p.id}" ${ev.bunker ? 'checked' : ''}> 砂遊び</label>
+                <label><input type="checkbox" id="edit-pond-${p.id}" ${ev.pond ? 'checked' : ''}> 池ポチャ</label>
+                <label><input type="checkbox" id="edit-oneP-${p.id}" ${ev.oneP ? 'checked' : ''}> ワンペナ</label>
+              </div>
             </div>
-            <div class="edit-row-grid" style="margin-top:5px;">
-              <label>オリンピック:</label>
-              <select id="edit-oly-${p.id}">
-                <option value="" ${!ev.olympic ? 'selected' : ''}>なし</option>
-                <option value="dia" ${ev.olympic === 'dia' ? 'selected' : ''}>💎 ダイヤ (+5)</option>
-                <option value="gold" ${ev.olympic === 'gold' ? 'selected' : ''}>🥇 金 (+4)</option>
-                <option value="silver" ${ev.olympic === 'silver' ? 'selected' : ''}>🥈 銀 (+3)</option>
-                <option value="bronze" ${ev.olympic === 'bronze' ? 'selected' : ''}>🥉 銅 (+2)</option>
-                <option value="iron" ${ev.olympic === 'iron' ? 'selected' : ''}>鉄 (+1)</option>
-              </select>
+
+            <div style="background:#f1f5f9; border:1px stroke #cbd5e1; padding:8px; border-radius:6px;">
+              <div style="font-size:0.75em; font-weight:bold; color:#475569; margin-bottom:4px;">⚙️ ハンディキャップ変更</div>
+              <div class="edit-row-grid">
+                <label style="font-size:0.8em; color:#475569;">HDCP数:</label>
+                <input type="number" id="edit-hdcp-${p.id}" value="${hdcp}" min="0">
+              </div>
+              <div class="edit-row-grid" style="margin-top:5px;">
+                <label style="font-size:0.8em; color:#475569;">適用条件:</label>
+                <select id="edit-hdcpRule-${p.id}">
+                  <option value="none" ${hdcpRule === 'none' ? 'selected' : ''}>適用なし</option>
+                  <option value="par4" ${hdcpRule === 'par4' ? 'selected' : ''}>PAR 4のみ適用</option>
+                  <option value="par45" ${hdcpRule === 'par45' ? 'selected' : ''}>PAR 4, 5のみ適用</option>
+                  <option value="everyone" ${hdcpRule === 'everyone' ? 'selected' : ''}>全ホール適用 (エブリワン)</option>
+                </select>
+              </div>
             </div>
-            <div style="font-size:0.8em; margin-top:5px;">
-              <label><input type="checkbox" id="edit-putt3-${p.id}" ${ev.putt3 ? 'checked' : ''}> 3パット</label>
-              <label><input type="checkbox" id="edit-bunker-${p.id}" ${ev.bunker ? 'checked' : ''}> 砂遊び</label>
-              <label><input type="checkbox" id="edit-pond-${p.id}" ${ev.pond ? 'checked' : ''}> 池ポチャ</label>
-              <label><input type="checkbox" id="edit-oneP-${p.id}" ${ev.oneP ? 'checked' : ''}> ワンペナ</label>
-            </div>
+
           </div>
         `;
         body.innerHTML += html;
@@ -1269,11 +1290,13 @@
       }
     }
 
+    // 修正内容を保存し、全体のスコア・ハンディ設定を反映して再計算
     function saveEditedHole() {
       if (editingHoleIndex < 0) return;
       const log = holeLogs[editingHoleIndex];
 
       initialPlayers.forEach(p => {
+        // 打数・イベントの保存
         log.scores[p.id] = parseInt(document.getElementById(`edit-score-${p.id}`).value) || log.par;
         log.events[p.id] = {
           olympic: document.getElementById(`edit-oly-${p.id}`).value || null,
@@ -1282,6 +1305,10 @@
           pond: document.getElementById(`edit-pond-${p.id}`).checked,
           oneP: document.getElementById(`edit-oneP-${p.id}`).checked
         };
+
+        // ハンディ設定の更新（initialPlayers に反映）
+        p.hdcp = parseInt(document.getElementById(`edit-hdcp-${p.id}`).value) || 0;
+        p.hdcpRule = document.getElementById(`edit-hdcpRule-${p.id}`).value;
       });
 
       if (log.par === 3 || log.par === 5) {
@@ -1294,14 +1321,13 @@
       closeEditModal();
       recalculateAll();
       updateHoleUI();
-      alert(`${log.hole}番ホールの修正を反映し、全スコアを再計算しました！`);
+      alert(`${log.hole}番ホールの修正およびハンディ変更を反映し、全スコアを再計算しました！`);
     }
 
     function renderTable() {
       const tbody = document.getElementById('score-table-body');
       tbody.innerHTML = '';
       
-      // 最初に入力・登録した順番（ID順: 1〜4）を常に固定して表示
       initialPlayers.forEach(p => {
         const curPlayer = playerOrder.find(item => item.id === p.id) || p;
         const tr = document.createElement('tr');
