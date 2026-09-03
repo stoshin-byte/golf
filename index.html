@@ -39,14 +39,7 @@
     .btn-par.active { background: #2563eb; color: white; border-color: #2563eb; }
 
     /* チップ表示枠 */
-    .chip-box {
-      background: #fefce8;
-      border: 1px solid #fef08a;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
+    .chip-box { background: #fefce8; border: 1px solid #fef08a; padding: 10px; border-radius: 8px; margin-top: 10px; margin-bottom: 10px; }
     .chip-box label { color: #854d0e; margin-top: 0; }
 
     /* スコア入力用プレイヤーカード */
@@ -105,8 +98,9 @@
     .history-tag { font-size: 0.75em; padding: 1px 4px; border-radius: 3px; display: inline-block; margin: 1px; }
     .tag-blue { background: #dbeafe; color: #1e3a8a; }
     .tag-orange { background: #ffedd5; color: #7c2d12; }
+    .btn-edit-row { background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; cursor: pointer; font-weight: bold; width: auto; margin: 0; }
 
-    /* ルールモーダル（ポップアップ）用CSS */
+    /* モーダル共通CSS */
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.6); z-index: 1000; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;
@@ -117,10 +111,15 @@
     }
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; }
     .modal-header h2 { margin: 0; font-size: 1.2em; color: #1e293b; }
-    .btn-close-modal { background: #94a3b8; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; font-size: 1.1em; cursor: pointer; padding: 0; line-height: 30px; width: 30px; }
+    .btn-close-modal { background: #94a3b8; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; font-size: 1.1em; cursor: pointer; padding: 0; line-height: 30px; }
     .rule-sec-title { font-weight: bold; color: #1e3a8a; background: #eff6ff; padding: 6px 10px; border-radius: 6px; font-size: 0.95em; margin-top: 15px; margin-bottom: 8px; border-left: 4px solid #2563eb; }
     .rule-list { font-size: 0.85em; color: #334155; line-height: 1.6; padding-left: 18px; margin: 5px 0; }
     .rule-list li { margin-bottom: 6px; }
+
+    /* スコア修正モーダル用 */
+    .edit-player-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    .edit-player-name { font-weight: bold; color: #1e293b; margin-bottom: 5px; }
+    .edit-row-grid { display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: center; }
   </style>
 </head>
 <body>
@@ -362,6 +361,7 @@
             <th>C</th>
             <th>D</th>
             <th>チップ</th>
+            <th>修正</th>
           </tr>
         </thead>
         <tbody id="history-table-body"></tbody>
@@ -371,7 +371,7 @@
     <button class="btn-reset" onclick="resetGame()">データをリセットして新ゲーム</button>
   </div>
 
-  <!-- ルール説明用モーダル（ポップアップ） -->
+  <!-- ルール説明用モーダル -->
   <div class="modal-overlay" id="ruleModal" onclick="closeRuleModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -416,8 +416,23 @@
     </div>
   </div>
 
+  <!-- スコア修正用モーダル -->
+  <div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="edit-modal-title">スコア修正</h2>
+        <button class="btn-close-modal" onclick="closeEditModal()">✕</button>
+      </div>
+
+      <div id="edit-modal-body"></div>
+
+      <button class="btn-submit" onclick="saveEditedHole()">この内容で修正を保存・再計算</button>
+    </div>
+  </div>
+
   <script>
     let playerOrder = [];
+    let initialPlayers = []; // 初期登録状態（ID基準）
     let currentHole = 1;
     let carryOverPoints = 0;
     let currentPar = 4;
@@ -426,6 +441,7 @@
     let carriedTeamAIds = null;
     let historyStack = [];
     let holeLogs = [];
+    let editingHoleIndex = -1;
 
     let playerEvents = [
       { olympic: null, putt3: false, bunker: false, pond: false, oneP: false },
@@ -439,7 +455,6 @@
 
     const STORAGE_KEY = 'vegas_golf_app_data';
 
-    // ルールモーダル制御
     function openRuleModal() {
       document.getElementById('ruleModal').style.display = 'flex';
     }
@@ -453,6 +468,7 @@
     function saveData() {
       const state = {
         playerOrder,
+        initialPlayers,
         currentHole,
         carryOverPoints,
         nearPinCarry,
@@ -473,6 +489,7 @@
           if (state && state.playerOrder && state.playerOrder.length === 4) {
             if (confirm(`保存されたデータがあります（${state.currentHole > 18 ? '最終結果' : state.currentHole + '番ホール途中'}）。前回の続きから再開しますか？`)) {
               playerOrder = state.playerOrder;
+              initialPlayers = state.initialPlayers || JSON.parse(JSON.stringify(playerOrder));
               currentHole = state.currentHole;
               carryOverPoints = state.carryOverPoints || 0;
               nearPinCarry = state.nearPinCarry || 0;
@@ -496,7 +513,7 @@
                 document.getElementById('result-title').innerText = "🏆 最終確定スコア (全18ホール終了)";
               }
 
-              renderTable();
+              recalculateAll();
               return true;
             }
           }
@@ -559,6 +576,7 @@
       }
 
       playerOrder = initialOrder;
+      initialPlayers = JSON.parse(JSON.stringify(initialOrder));
 
       document.getElementById('setup-section').style.display = 'none';
       document.getElementById('game-section').style.display = 'block';
@@ -771,142 +789,177 @@
         holeLogs: JSON.parse(JSON.stringify(holeLogs))
       });
 
-      const rule = document.getElementById('hdcpRule').value;
-      const rawScores = [...currentScores];
-      const { teamA, teamB } = getCurrentTeams();
-
       let currentLog = {
         hole: currentHole,
         par: currentPar,
         scores: {},
         events: {},
-        teams: {
-          teamAIds: teamA.map(t => t.player.id),
-          teamBIds: teamB.map(t => t.player.id)
-        },
-        chipWinner: null
+        chipWinnerId: -1
       };
 
       for (let i = 0; i < 4; i++) {
         const pId = playerOrder[i].id;
-        currentLog.scores[pId] = rawScores[i];
+        currentLog.scores[pId] = currentScores[i];
         currentLog.events[pId] = { ...playerEvents[i] };
       }
 
-      // 1. オリンピック & ペナルティ処理
-      for (let i = 0; i < 4; i++) {
-        const oly = playerEvents[i].olympic;
-        let rate = 0;
-
-        if (oly === 'gold') rate = 4;
-        if (oly === 'silver') rate = 3;
-        if (oly === 'bronze') rate = 2;
-        if (oly === 'iron') rate = 1;
-        if (oly === 'dia') rate = 5;
-
-        if (rate > 0) {
-          addChipPoints(playerOrder[i].id, rate);
-        }
-
-        const penKeys = ['putt3', 'bunker', 'pond', 'oneP'];
-        penKeys.forEach(k => {
-          if (playerEvents[i][k]) {
-            payPenaltyPoints(playerOrder[i].id, 2);
-          }
-        });
-      }
-
-      // 2. ニアピン・ドラコン処理
       if (currentPar === 3 || currentPar === 5) {
-        const winnerId = parseInt(document.getElementById('chip-winner-select').value);
-        if (winnerId !== -1) {
-          const wPlayer = playerOrder.find(p => p.id === winnerId);
-          currentLog.chipWinner = wPlayer ? wPlayer.name : null;
-        }
-
-        if (currentPar === 3) {
-          if (winnerId !== -1) {
-            addChipPoints(winnerId, 10 + nearPinCarry);
-            nearPinCarry = 0;
-          } else {
-            nearPinCarry += 10;
-          }
-        } else if (currentPar === 5) {
-          if (winnerId !== -1) {
-            addChipPoints(winnerId, 10 + doraConCarry);
-            doraConCarry = 0;
-          } else {
-            doraConCarry += 10;
-          }
-        }
+        currentLog.chipWinnerId = parseInt(document.getElementById('chip-winner-select').value);
       }
-
-      // 3. ハンディ減算 ➔ 9打上限処理
-      const finalScores = rawScores.map((score, idx) => {
-        let hdcp = playerOrder[idx].hdcp;
-        let applyHdcp = false;
-        if (rule === 'everyone') applyHdcp = true;
-        else if (rule === 'par45' && (currentPar === 4 || currentPar === 5)) applyHdcp = true;
-        else if (rule === 'par4' && currentPar === 4) applyHdcp = true;
-
-        if (!applyHdcp) hdcp = 0;
-
-        let adjusted = score - hdcp;
-        return adjusted >= 9 ? 9 : adjusted;
-      });
-
-      // 4. スコア合成計算
-      const teamAScores = [finalScores[teamA[0].index], finalScores[teamA[1].index]];
-      const teamBScores = [finalScores[teamB[0].index], finalScores[teamB[1].index]];
-
-      const scoreA = buildTeamScoreWithReversal(teamAScores, teamBScores, currentPar);
-      const scoreB = buildTeamScoreWithReversal(teamBScores, teamAScores, currentPar);
-
-      // 5. 勝敗・ポイント計算
-      let diff = Math.abs(scoreA - scoreB);
-
-      if (scoreA < scoreB) {
-        let gained = diff + carryOverPoints;
-        teamA[0].player.points += gained;
-        teamA[1].player.points += gained;
-        teamB[0].player.points -= gained;
-        teamB[1].player.points -= gained;
-        carryOverPoints = 0;
-        carriedTeamAIds = null;
-      } else if (scoreB < scoreA) {
-        let gained = diff + carryOverPoints;
-        teamB[0].player.points += gained;
-        teamB[1].player.points += gained;
-        teamA[0].player.points -= gained;
-        teamA[1].player.points -= gained;
-        carryOverPoints = 0;
-        carriedTeamAIds = null;
-      } else {
-        carryOverPoints += 10;
-        carriedTeamAIds = [teamA[0].player.id, teamA[1].player.id];
-        alert("ラスベガス引き分けのため、チームを固定して10点を次のホールへ持ち越します！");
-      }
-
-      // 6. 次ホールの打順決め
-      let lastPerformance = playerOrder.map((p, idx) => ({
-        player: p,
-        rawScore: rawScores[idx],
-        originalIndex: idx
-      }));
-
-      lastPerformance.sort((a, b) => {
-        if (a.rawScore !== b.rawScore) {
-          return a.rawScore - b.rawScore;
-        }
-        return a.originalIndex - b.originalIndex;
-      });
-
-      playerOrder = lastPerformance.map(item => item.player);
 
       holeLogs.push(currentLog);
       currentHole++;
-      saveData();
+
+      recalculateAll();
       updateHoleUI();
+    }
+
+    // 全ホールのスコアを最初から一括再計算するコア処理
+    function recalculateAll() {
+      let pMap = {};
+      initialPlayers.forEach(p => {
+        pMap[p.id] = { id: p.id, name: p.name, hdcp: p.hdcp, order: p.order, points: 0 };
+      });
+
+      let localOrder = [...initialPlayers].map(p => pMap[p.id]);
+      let localCarryOver = 0;
+      let localNearPinCarry = 0;
+      let localDoraConCarry = 0;
+      let localCarriedTeamAIds = null;
+      const rule = document.getElementById('hdcpRule').value;
+
+      holeLogs.forEach(log => {
+        // チーム決定
+        let teamA = [];
+        let teamB = [];
+
+        if (localCarriedTeamAIds) {
+          localOrder.forEach((p, idx) => {
+            if (localCarriedTeamAIds.includes(p.id)) teamA.push({ player: p, index: idx });
+            else teamB.push({ player: p, index: idx });
+          });
+        } else {
+          teamA = [{ player: localOrder[0], index: 0 }, { player: localOrder[3], index: 3 }];
+          teamB = [{ player: localOrder[1], index: 1 }, { player: localOrder[2], index: 2 }];
+        }
+
+        log.teams = { teamAIds: teamA.map(t => t.player.id), teamBIds: teamB.map(t => t.player.id) };
+
+        // 1. オリンピック ＆ ペナルティ
+        localOrder.forEach(p => {
+          const ev = log.events[p.id];
+          if (ev) {
+            let rate = 0;
+            if (ev.olympic === 'gold') rate = 4;
+            if (ev.olympic === 'silver') rate = 3;
+            if (ev.olympic === 'bronze') rate = 2;
+            if (ev.olympic === 'iron') rate = 1;
+            if (ev.olympic === 'dia') rate = 5;
+
+            if (rate > 0) {
+              localOrder.forEach(target => {
+                if (target.id === p.id) target.points += (rate * 3);
+                else target.points -= rate;
+              });
+            }
+
+            const penKeys = ['putt3', 'bunker', 'pond', 'oneP'];
+            penKeys.forEach(k => {
+              if (ev[k]) {
+                localOrder.forEach(target => {
+                  if (target.id === p.id) target.points -= 6;
+                  else target.points += 2;
+                });
+              }
+            });
+          }
+        });
+
+        // 2. チップ（ニアピン・ドラコン）
+        if (log.par === 3 || log.par === 5) {
+          const winnerId = log.chipWinnerId;
+          log.chipWinner = winnerId !== -1 && pMap[winnerId] ? pMap[winnerId].name : null;
+
+          if (log.par === 3) {
+            if (winnerId !== -1) {
+              let prize = 10 + localNearPinCarry;
+              localOrder.forEach(target => {
+                if (target.id === winnerId) target.points += prize;
+                else target.points -= Math.floor(prize / 3);
+              });
+              localNearPinCarry = 0;
+            } else {
+              localNearPinCarry += 10;
+            }
+          } else if (log.par === 5) {
+            if (winnerId !== -1) {
+              let prize = 10 + localDoraConCarry;
+              localOrder.forEach(target => {
+                if (target.id === winnerId) target.points += prize;
+                else target.points -= Math.floor(prize / 3);
+              });
+              localDoraConCarry = 0;
+            } else {
+              localDoraConCarry += 10;
+            }
+          }
+        }
+
+        // 3. ラスベガス本線スコア計算
+        const rawScores = localOrder.map(p => log.scores[p.id]);
+        const finalScores = rawScores.map((score, idx) => {
+          let hdcp = localOrder[idx].hdcp;
+          let applyHdcp = false;
+          if (rule === 'everyone') applyHdcp = true;
+          else if (rule === 'par45' && (log.par === 4 || log.par === 5)) applyHdcp = true;
+          else if (rule === 'par4' && log.par === 4) applyHdcp = true;
+
+          if (!applyHdcp) hdcp = 0;
+          let adjusted = score - hdcp;
+          return adjusted >= 9 ? 9 : adjusted;
+        });
+
+        const teamAScores = [finalScores[teamA[0].index], finalScores[teamA[1].index]];
+        const teamBScores = [finalScores[teamB[0].index], finalScores[teamB[1].index]];
+
+        const scoreA = buildTeamScoreWithReversal(teamAScores, teamBScores, log.par);
+        const scoreB = buildTeamScoreWithReversal(teamBScores, teamAScores, log.par);
+
+        let diff = Math.abs(scoreA - scoreB);
+
+        if (scoreA < scoreB) {
+          let gained = diff + localCarryOver;
+          teamA.forEach(t => t.player.points += gained);
+          teamB.forEach(t => t.player.points -= gained);
+          localCarryOver = 0;
+          localCarriedTeamAIds = null;
+        } else if (scoreB < scoreA) {
+          let gained = diff + localCarryOver;
+          teamB.forEach(t => t.player.points += gained);
+          teamA.forEach(t => t.player.points -= gained);
+          localCarryOver = 0;
+          localCarriedTeamAIds = null;
+        } else {
+          localCarryOver += 10;
+          localCarriedTeamAIds = [teamA[0].player.id, teamA[1].player.id];
+        }
+
+        // 次ホールのオナー順決め
+        let perf = localOrder.map((p, idx) => ({ player: p, rawScore: rawScores[idx], originalIndex: idx }));
+        perf.sort((a, b) => {
+          if (a.rawScore !== b.rawScore) return a.rawScore - b.rawScore;
+          return a.originalIndex - b.originalIndex;
+        });
+        localOrder = perf.map(item => item.player);
+      });
+
+      playerOrder = localOrder;
+      carryOverPoints = localCarryOver;
+      nearPinCarry = localNearPinCarry;
+      doraConCarry = localDoraConCarry;
+      carriedTeamAIds = localCarriedTeamAIds;
+
+      saveData();
       renderTable();
     }
 
@@ -924,40 +977,114 @@
         carriedTeamAIds = lastState.carriedTeamAIds;
         holeLogs = lastState.holeLogs || [];
 
-        saveData();
+        recalculateAll();
         updateHoleUI();
-        renderTable();
       }
     }
 
-    function addChipPoints(winnerId, rate) {
-      playerOrder.forEach(p => {
-        if (p.id === winnerId) {
-          p.points += (rate * 3);
-        } else {
-          p.points -= rate;
-        }
+    // 履歴修正モーダルの表示・処理
+    function openEditModal(index) {
+      editingHoleIndex = index;
+      const log = holeLogs[index];
+      document.getElementById('edit-modal-title').innerText = `${log.hole}番ホール (PAR${log.par}) スコア修正`;
+
+      const body = document.getElementById('edit-modal-body');
+      body.innerHTML = '';
+
+      initialPlayers.forEach(p => {
+        const score = log.scores[p.id] || log.par;
+        const ev = log.events[p.id] || {};
+
+        let html = `
+          <div class="edit-player-box">
+            <div class="edit-player-name">${p.name}</div>
+            <div class="edit-row-grid">
+              <label>打数:</label>
+              <input type="number" id="edit-score-${p.id}" value="${score}" min="1" max="15">
+            </div>
+            <div class="edit-row-grid" style="margin-top:5px;">
+              <label>オリンピック:</label>
+              <select id="edit-oly-${p.id}">
+                <option value="" ${!ev.olympic ? 'selected' : ''}>なし</option>
+                <option value="dia" ${ev.olympic === 'dia' ? 'selected' : ''}>💎 ダイヤ (+5)</option>
+                <option value="gold" ${ev.olympic === 'gold' ? 'selected' : ''}>🥇 金 (+4)</option>
+                <option value="silver" ${ev.olympic === 'silver' ? 'selected' : ''}>🥈 銀 (+3)</option>
+                <option value="bronze" ${ev.olympic === 'bronze' ? 'selected' : ''}>🥉 銅 (+2)</option>
+                <option value="iron" ${ev.olympic === 'iron' ? 'selected' : ''}>鉄 (+1)</option>
+              </select>
+            </div>
+            <div style="font-size:0.8em; margin-top:5px;">
+              <label><input type="checkbox" id="edit-putt3-${p.id}" ${ev.putt3 ? 'checked' : ''}> 3パット</label>
+              <label><input type="checkbox" id="edit-bunker-${p.id}" ${ev.bunker ? 'checked' : ''}> 砂遊び</label>
+              <label><input type="checkbox" id="edit-pond-${p.id}" ${ev.pond ? 'checked' : ''}> 池ポチャ</label>
+              <label><input type="checkbox" id="edit-oneP-${p.id}" ${ev.oneP ? 'checked' : ''}> ワンペナ</label>
+            </div>
+          </div>
+        `;
+        body.innerHTML += html;
       });
+
+      if (log.par === 3 || log.par === 5) {
+        let chipTitle = log.par === 3 ? '🚩 ニアピン獲得者' : '🏌️‍♂️ ドラコン獲得者';
+        let chipHtml = `
+          <div style="margin-top:10px; margin-bottom:10px;">
+            <label>${chipTitle}</label>
+            <select id="edit-chip-winner">
+              <option value="-1" ${log.chipWinnerId === -1 ? 'selected' : ''}>なし</option>
+        `;
+        initialPlayers.forEach(p => {
+          chipHtml += `<option value="${p.id}" ${log.chipWinnerId === p.id ? 'selected' : ''}>${p.name}</option>`;
+        });
+        chipHtml += `</select></div>`;
+        body.innerHTML += chipHtml;
+      }
+
+      document.getElementById('editModal').style.display = 'flex';
     }
 
-    function payPenaltyPoints(loserId, rate) {
-      playerOrder.forEach(p => {
-        if (p.id === loserId) {
-          p.points -= (rate * 3);
-        } else {
-          p.points += rate;
-        }
+    function closeEditModal(e) {
+      if (!e || e.target.id === 'editModal' || e.target.classList.contains('btn-close-modal')) {
+        document.getElementById('editModal').style.display = 'none';
+      }
+    }
+
+    function saveEditedHole() {
+      if (editingHoleIndex < 0) return;
+      const log = holeLogs[editingHoleIndex];
+
+      initialPlayers.forEach(p => {
+        log.scores[p.id] = parseInt(document.getElementById(`edit-score-${p.id}`).value) || log.par;
+        log.events[p.id] = {
+          olympic: document.getElementById(`edit-oly-${p.id}`).value || null,
+          putt3: document.getElementById(`edit-putt3-${p.id}`).checked,
+          bunker: document.getElementById(`edit-bunker-${p.id}`).checked,
+          pond: document.getElementById(`edit-pond-${p.id}`).checked,
+          oneP: document.getElementById(`edit-oneP-${p.id}`).checked
+        };
       });
+
+      if (log.par === 3 || log.par === 5) {
+        const select = document.getElementById('edit-chip-winner');
+        if (select) {
+          log.chipWinnerId = parseInt(select.value);
+        }
+      }
+
+      closeEditModal();
+      recalculateAll();
+      updateHoleUI();
+      alert(`${log.hole}番ホールの修正を反映し、全スコアを再計算しました！`);
     }
 
     function renderTable() {
       const tbody = document.getElementById('score-table-body');
       tbody.innerHTML = '';
       
-      let sortedById = [...playerOrder].sort((a, b) => a.id - b.id);
+      let sortedById = [...initialPlayers].sort((a, b) => a.id - b.id);
       sortedById.forEach(p => {
+        const curPlayer = playerOrder.find(item => item.id === p.id) || p;
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><b>${p.name}</b></td><td><b>${p.points} 点</b></td>`;
+        tr.innerHTML = `<td><b>${curPlayer.name}</b></td><td><b>${curPlayer.points} 点</b></td>`;
         tbody.appendChild(tr);
       });
 
@@ -966,21 +1093,21 @@
       sortedById.forEach(p => {
         historyHeader.innerHTML += `<th>${p.name}</th>`;
       });
-      historyHeader.innerHTML += `<th>チップ</th>`;
+      historyHeader.innerHTML += `<th>チップ</th><th>修正</th>`;
 
       const historyBody = document.getElementById('history-table-body');
       historyBody.innerHTML = '';
 
       const olyLabel = { gold: '金', silver: '銀', bronze: '銅', iron: '鉄', dia: 'ダ' };
 
-      holeLogs.forEach(log => {
+      holeLogs.forEach((log, idx) => {
         const tr = document.createElement('tr');
         let html = `<td><b>${log.hole}</b></td><td>${log.par}</td>`;
 
         sortedById.forEach(p => {
           const score = log.scores[p.id];
-          const ev = log.events[p.id];
-          const isTeamA = log.teams.teamAIds.includes(p.id);
+          const ev = log.events[p.id] || {};
+          const isTeamA = log.teams && log.teams.teamAIds ? log.teams.teamAIds.includes(p.id) : false;
           const badgeClass = isTeamA ? 'tag-blue' : 'tag-orange';
 
           let evText = '';
@@ -994,6 +1121,7 @@
         });
 
         html += `<td>${log.chipWinner ? log.chipWinner : '-'}</td>`;
+        html += `<td><button class="btn-edit-row" onclick="openEditModal(${idx})">編集</button></td>`;
         tr.innerHTML = html;
         historyBody.appendChild(tr);
       });
