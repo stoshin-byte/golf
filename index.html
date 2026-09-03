@@ -248,6 +248,15 @@
             <span class="field-label">HDCP (ハンディ)</span>
             <input type="number" id="h1" value="0" placeholder="例: 2">
           </div>
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">ハンディ適用条件</span>
+            <select id="hdcpRule-p1">
+              <option value="none" selected>適用なし</option>
+              <option value="par4">PAR 4のみ適用</option>
+              <option value="par45">PAR 4, 5のみ適用</option>
+              <option value="everyone">全ホール適用 (エブリワン)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -271,6 +280,15 @@
           <div class="field-group">
             <span class="field-label">HDCP (ハンディ)</span>
             <input type="number" id="h2" value="0" placeholder="例: 2">
+          </div>
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">ハンディ適用条件</span>
+            <select id="hdcpRule-p2">
+              <option value="none" selected>適用なし</option>
+              <option value="par4">PAR 4のみ適用</option>
+              <option value="par45">PAR 4, 5のみ適用</option>
+              <option value="everyone">全ホール適用 (エブリワン)</option>
+            </select>
           </div>
         </div>
       </div>
@@ -296,6 +314,15 @@
             <span class="field-label">HDCP (ハンディ)</span>
             <input type="number" id="h3" value="0" placeholder="例: 2">
           </div>
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">ハンディ適用条件</span>
+            <select id="hdcpRule-p3">
+              <option value="none" selected>適用なし</option>
+              <option value="par4">PAR 4のみ適用</option>
+              <option value="par45">PAR 4, 5のみ適用</option>
+              <option value="everyone">全ホール適用 (エブリワン)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -320,20 +347,21 @@
             <span class="field-label">HDCP (ハンディ)</span>
             <input type="number" id="h4" value="0" placeholder="例: 2">
           </div>
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">ハンディ適用条件</span>
+            <select id="hdcpRule-p4">
+              <option value="none" selected>適用なし</option>
+              <option value="par4">PAR 4のみ適用</option>
+              <option value="par45">PAR 4, 5のみ適用</option>
+              <option value="everyone">全ホール適用 (エブリワン)</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- スタート対戦ペア表示 -->
     <div class="pair-info" id="preview-pair" style="margin-top:15px;"></div>
-
-    <label>ハンディ適用条件</label>
-    <select id="hdcpRule">
-      <option value="none">ハンディなし</option>
-      <option value="par4">PAR 4 のみ適用</option>
-      <option value="par45">PAR 4, 5 のみ適用</option>
-      <option value="everyone">全ホール適用 (エブリワン)</option>
-    </select>
 
     <button class="btn-submit" onclick="startGame()">ゲーム開始</button>
   </div>
@@ -539,7 +567,7 @@
 
       <div class="rule-sec-title">2. ハンディキャップ（HDCP）</div>
       <ul class="rule-list">
-        <li>スタート時に設定（ハンディなし / PAR4のみ / PAR4,5のみ / 全ホール）。</li>
+        <li>プレイヤーごとに個別設定可能（適用なし / PAR4のみ / PAR4,5のみ / 全ホール）。</li>
         <li>チームスコア計算時のみ打数から減算。次ホールの打順決め（オナー順）には影響しません。</li>
       </ul>
 
@@ -623,8 +651,7 @@
         doraConCarry,
         carriedTeamAIds,
         historyStack,
-        holeLogs,
-        hdcpRuleSetting: document.getElementById('hdcpRule').value
+        holeLogs
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
@@ -645,10 +672,6 @@
               carriedTeamAIds = state.carriedTeamAIds || null;
               historyStack = state.historyStack || [];
               holeLogs = state.holeLogs || [];
-
-              if (state.hdcpRuleSetting) {
-                document.getElementById('hdcpRule').value = state.hdcpRuleSetting;
-              }
 
               document.getElementById('setup-section').style.display = 'none';
               document.getElementById('result-section').style.display = 'block';
@@ -700,10 +723,38 @@
 
     function getRegisteredPlayers() {
       const pData = [
-        { id: 1, name: document.getElementById('p1').value || 'Aさん', hdcp: parseInt(document.getElementById('h1').value) || 0, order: parseInt(document.getElementById('order-p1').value), points: 0 },
-        { id: 2, name: document.getElementById('p2').value || 'Bさん', hdcp: parseInt(document.getElementById('h2').value) || 0, order: parseInt(document.getElementById('order-p2').value), points: 0 },
-        { id: 3, name: document.getElementById('p3').value || 'Cさん', hdcp: parseInt(document.getElementById('h3').value) || 0, order: parseInt(document.getElementById('order-p3').value), points: 0 },
-        { id: 4, name: document.getElementById('p4').value || 'Dさん', hdcp: parseInt(document.getElementById('h4').value) || 0, order: parseInt(document.getElementById('order-p4').value), points: 0 }
+        { 
+          id: 1, 
+          name: document.getElementById('p1').value || 'Aさん', 
+          hdcp: parseInt(document.getElementById('h1').value) || 0, 
+          hdcpRule: document.getElementById('hdcpRule-p1').value,
+          order: parseInt(document.getElementById('order-p1').value), 
+          points: 0 
+        },
+        { 
+          id: 2, 
+          name: document.getElementById('p2').value || 'Bさん', 
+          hdcp: parseInt(document.getElementById('h2').value) || 0, 
+          hdcpRule: document.getElementById('hdcpRule-p2').value,
+          order: parseInt(document.getElementById('order-p2').value), 
+          points: 0 
+        },
+        { 
+          id: 3, 
+          name: document.getElementById('p3').value || 'Cさん', 
+          hdcp: parseInt(document.getElementById('h3').value) || 0, 
+          hdcpRule: document.getElementById('hdcpRule-p3').value,
+          order: parseInt(document.getElementById('order-p3').value), 
+          points: 0 
+        },
+        { 
+          id: 4, 
+          name: document.getElementById('p4').value || 'Dさん', 
+          hdcp: parseInt(document.getElementById('h4').value) || 0, 
+          hdcpRule: document.getElementById('hdcpRule-p4').value,
+          order: parseInt(document.getElementById('order-p4').value), 
+          points: 0 
+        }
       ];
 
       const orders = pData.map(p => p.order);
@@ -969,7 +1020,7 @@
     function recalculateAll() {
       let pMap = {};
       initialPlayers.forEach(p => {
-        pMap[p.id] = { id: p.id, name: p.name, hdcp: p.hdcp, order: p.order, points: 0 };
+        pMap[p.id] = { id: p.id, name: p.name, hdcp: p.hdcp, hdcpRule: p.hdcpRule, order: p.order, points: 0 };
       });
 
       let localOrder = [...initialPlayers].map(p => pMap[p.id]);
@@ -977,7 +1028,6 @@
       let localNearPinCarry = 0;
       let localDoraConCarry = 0;
       let localCarriedTeamAIds = null;
-      const rule = document.getElementById('hdcpRule').value;
 
       holeLogs.forEach(log => {
         let teamA = [];
@@ -1055,14 +1105,17 @@
           }
         }
 
-        // 3. ラスベガス本線スコア計算
+        // 3. ラスベガス本線スコア計算（プレイヤー別個別ハンディ判定）
         const rawScores = localOrder.map(p => log.scores[p.id]);
         const finalScores = rawScores.map((score, idx) => {
-          let hdcp = localOrder[idx].hdcp;
+          let p = localOrder[idx];
+          let hdcp = p.hdcp || 0;
+          let pRule = p.hdcpRule || 'none';
           let applyHdcp = false;
-          if (rule === 'everyone') applyHdcp = true;
-          else if (rule === 'par45' && (log.par === 4 || log.par === 5)) applyHdcp = true;
-          else if (rule === 'par4' && log.par === 4) applyHdcp = true;
+
+          if (pRule === 'everyone') applyHdcp = true;
+          else if (pRule === 'par45' && (log.par === 4 || log.par === 5)) applyHdcp = true;
+          else if (pRule === 'par4' && log.par === 4) applyHdcp = true;
 
           if (!applyHdcp) hdcp = 0;
           let adjusted = score - hdcp;
