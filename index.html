@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- SNSシェア（OGP）設定（LINEやXで綺麗にカード表示される設定） -->
+  <!-- SNSシェア（OGP）設定 -->
   <meta property="og:title" content="ゴルフ ラスベガス計算アプリ">
   <meta property="og:description" content="面倒なラスベガス・オリンピックのスコア計算が一瞬で終わる無料アプリ！">
   <meta property="og:image" content="icon.png">
@@ -46,16 +46,78 @@
     .btn-undo:hover { background: #d68910; }
     .btn-reset { background: #e74c3c; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; padding: 10px; border-radius: 6px; width: 100%; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .player-row { display: grid; grid-template-columns: 90px 1fr 80px; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .player-row label { margin-top: 0; }
+    
+    /* プレイヤー登録・スタート打順エリアのデザイン改善 */
+    .player-row-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .player-row-title {
+      font-size: 0.85em;
+      font-weight: bold;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .player-row-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .field-label {
+      font-size: 0.75em;
+      font-weight: bold;
+      color: #64748b;
+      margin-top: 0;
+      margin-bottom: 2px;
+    }
+    .field-group input, .field-group select {
+      margin-top: 0;
+      padding: 8px;
+      font-size: 0.9em;
+    }
+
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85em; }
     th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; }
     th { background: #eef2f5; }
     
-    /* 対戦ペア表示バッジ */
-    .pair-info { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; line-height: 1.6; }
-    .team-badge-a { color: #1e3a8a; background: #dbeafe; padding: 4px 8px; border-radius: 6px; display: inline-block; }
-    .team-badge-b { color: #7c2d12; background: #ffedd5; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+    /* 対戦ペア表示バッジ（スタートプレビュー用改善） */
+    .pair-info { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; line-height: 1.5; }
+    
+    .start-pair-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .team-badge-a {
+      color: #1e3a8a;
+      background: #dbeafe;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team-badge-b {
+      color: #7c2d12;
+      background: #ffedd5;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     /* PAR選択ボタン */
     .par-btn-group { display: flex; gap: 8px; margin-top: 5px; }
@@ -162,51 +224,107 @@
   <!-- 設定エリア -->
   <div class="card" id="setup-section">
     <h2>1. プレイヤー登録 & スタート打順</h2>
-    <p style="font-size:0.85em; color:#666; margin-top:-5px;">※最初のホール（1番ホール）の打順を選択してください</p>
+    <p style="font-size:0.85em; color:#666; margin-top:-5px; margin-bottom:12px;">※最初のホール（1番ホール）の打順を選択してください</p>
     
     <div id="player-inputs">
-      <div class="player-row">
-        <select class="order-select" id="order-p1" onchange="updatePairPreview()">
-          <option value="1" selected>1番 (オナー)</option>
-          <option value="2">2番打者</option>
-          <option value="3">3番打者</option>
-          <option value="4">4番打者</option>
-        </select>
-        <input type="text" id="p1" value="Aさん" placeholder="名前">
-        <input type="number" id="h1" value="0" placeholder="HDCP">
+      <!-- プレイヤー 1 -->
+      <div class="player-row-card">
+        <div class="player-row-title">👤 プレイヤー 1</div>
+        <div class="player-row-inputs">
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">名前</span>
+            <input type="text" id="p1" value="Aさん" placeholder="プレイヤー名" onchange="updatePairPreview()">
+          </div>
+          <div class="field-group">
+            <span class="field-label">スタート打順</span>
+            <select class="order-select" id="order-p1" onchange="updatePairPreview()">
+              <option value="1" selected>1番 (オナー)</option>
+              <option value="2">2番打者</option>
+              <option value="3">3番打者</option>
+              <option value="4">4番打者</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <span class="field-label">HDCP (ハンディ)</span>
+            <input type="number" id="h1" value="0" placeholder="例: 10">
+          </div>
+        </div>
       </div>
-      <div class="player-row">
-        <select class="order-select" id="order-p2" onchange="updatePairPreview()">
-          <option value="1">1番 (オナー)</option>
-          <option value="2" selected>2番打者</option>
-          <option value="3">3番打者</option>
-          <option value="4">4番打者</option>
-        </select>
-        <input type="text" id="p2" value="Bさん" placeholder="名前">
-        <input type="number" id="h2" value="0" placeholder="HDCP">
+
+      <!-- プレイヤー 2 -->
+      <div class="player-row-card">
+        <div class="player-row-title">👤 プレイヤー 2</div>
+        <div class="player-row-inputs">
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">名前</span>
+            <input type="text" id="p2" value="Bさん" placeholder="プレイヤー名" onchange="updatePairPreview()">
+          </div>
+          <div class="field-group">
+            <span class="field-label">スタート打順</span>
+            <select class="order-select" id="order-p2" onchange="updatePairPreview()">
+              <option value="1">1番 (オナー)</option>
+              <option value="2" selected>2番打者</option>
+              <option value="3">3番打者</option>
+              <option value="4">4番打者</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <span class="field-label">HDCP (ハンディ)</span>
+            <input type="number" id="h2" value="0" placeholder="例: 10">
+          </div>
+        </div>
       </div>
-      <div class="player-row">
-        <select class="order-select" id="order-p3" onchange="updatePairPreview()">
-          <option value="1">1番 (オナー)</option>
-          <option value="2">2番打者</option>
-          <option value="3" selected>3番打者</option>
-          <option value="4">4番打者</option>
-        </select>
-        <input type="text" id="p3" value="Cさん" placeholder="名前">
-        <input type="number" id="h3" value="0" placeholder="HDCP">
+
+      <!-- プレイヤー 3 -->
+      <div class="player-row-card">
+        <div class="player-row-title">👤 プレイヤー 3</div>
+        <div class="player-row-inputs">
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">名前</span>
+            <input type="text" id="p3" value="Cさん" placeholder="プレイヤー名" onchange="updatePairPreview()">
+          </div>
+          <div class="field-group">
+            <span class="field-label">スタート打順</span>
+            <select class="order-select" id="order-p3" onchange="updatePairPreview()">
+              <option value="1">1番 (オナー)</option>
+              <option value="2">2番打者</option>
+              <option value="3" selected>3番打者</option>
+              <option value="4">4番打者</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <span class="field-label">HDCP (ハンディ)</span>
+            <input type="number" id="h3" value="0" placeholder="例: 10">
+          </div>
+        </div>
       </div>
-      <div class="player-row">
-        <select class="order-select" id="order-p4" onchange="updatePairPreview()">
-          <option value="1">1番 (オナー)</option>
-          <option value="2">2番打者</option>
-          <option value="3">3番打者</option>
-          <option value="4" selected>4番打者</option>
-        </select>
-        <input type="text" id="p4" value="Dさん" placeholder="名前">
-        <input type="number" id="h4" value="0" placeholder="HDCP">
+
+      <!-- プレイヤー 4 -->
+      <div class="player-row-card">
+        <div class="player-row-title">👤 プレイヤー 4</div>
+        <div class="player-row-inputs">
+          <div class="field-group" style="grid-column: span 2;">
+            <span class="field-label">名前</span>
+            <input type="text" id="p4" value="Dさん" placeholder="プレイヤー名" onchange="updatePairPreview()">
+          </div>
+          <div class="field-group">
+            <span class="field-label">スタート打順</span>
+            <select class="order-select" id="order-p4" onchange="updatePairPreview()">
+              <option value="1">1番 (オナー)</option>
+              <option value="2">2番打者</option>
+              <option value="3">3番打者</option>
+              <option value="4" selected>4番打者</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <span class="field-label">HDCP (ハンディ)</span>
+            <input type="number" id="h4" value="0" placeholder="例: 10">
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- スタート対戦ペア表示 -->
     <div class="pair-info" id="preview-pair" style="margin-top:15px;"></div>
 
     <label>ハンディ適用条件</label>
@@ -572,9 +690,11 @@
 
       if (p1 && p2 && p3 && p4) {
         document.getElementById('preview-pair').innerHTML = 
-          `スタート対戦:<br>` +
-          `<span class="team-badge-a">青ペア: 👑 1番 ${p1.name} & 4️⃣ 4番 ${p4.name}</span><br>` +
-          `<span class="team-badge-b">オレンジペア: 🥈 2番 ${p2.name} & 🥉 3番 ${p3.name}</span>`;
+          `<div style="font-size:0.9em; margin-bottom:4px;">スタート対戦ペア</div>` +
+          `<div class="start-pair-preview">` +
+          `  <div class="team-badge-a">青ペア: 👑1番 ${p1.name} &amp; 4️⃣4番 ${p4.name}</div>` +
+          `  <div class="team-badge-b">オレンジペア: 🥈2番 ${p2.name} &amp; 🥉3番 ${p3.name}</div>` +
+          `</div>`;
       }
     }
 
@@ -590,7 +710,7 @@
       const hasDuplicates = new Set(orders).size !== orders.length;
 
       if (hasDuplicates) {
-        document.getElementById('preview-pair').innerText = "※打順が重複しています（1〜4番を重複なく選択してください）";
+        document.getElementById('preview-pair').innerHTML = "<span style='color:#dc2626; font-size:0.85em;'>※打順が重複しています（1〜4番を重複なく選択してください）</span>";
         return null;
       }
 
@@ -747,8 +867,10 @@
       const teamBNames = teamB.map(t => t.player.name).join(' & ');
 
       let pairText = 
-        `<span class="team-badge-a">青ペア: ${teamANames}</span><br>` +
-        `<span class="team-badge-b">オレンジペア: ${teamBNames}</span>`;
+        `<div class="start-pair-preview">` +
+        `  <div class="team-badge-a">青ペア: ${teamANames}</div>` +
+        `  <div class="team-badge-b">オレンジペア: ${teamBNames}</div>` +
+        `</div>`;
 
       if (carriedTeamAIds) {
         pairText += `<div style="font-size:0.8em; color:#d97706; margin-top:4px;">※引き分けのため前ホールのチームを引き継いでいます</div>`;
