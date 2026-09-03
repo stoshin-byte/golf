@@ -3,15 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ラスベガス・ゴルフ計算アプリ</title>
+  
+  <!-- SEO・検索エンジン設定 -->
+  <title>ゴルフ ラスベガス計算アプリ | オリンピック・チップ自動計算【無料PWA】</title>
+  <meta name="description" content="ゴルフのラスベガス、オリンピック、チップ（ニアピン・ドラコン）のスコア・ポイントを自動計算する無料Webアプリ。バーディ逆転やゼロサム計算にも完全対応！">
+  <meta name="keywords" content="ゴルフ,ラスベガス,計算,アプリ,スコアカード,オリンピック,ニアピン,ドラコン,幹事">
+
+  <!-- PWA（ホーム画面追加）設定 -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#27ae60">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- SNSシェア（OGP）設定（LINEやXで綺麗にカード表示される設定） -->
+  <meta property="og:title" content="ゴルフ ラスベガス計算アプリ">
+  <meta property="og:description" content="面倒なラスベガス・オリンピックのスコア計算が一瞬で終わる無料アプリ！">
+  <meta property="og:image" content="icon.png">
+  <meta property="og:type" content="website">
+
   <style>
     body { font-family: sans-serif; padding: 15px; max-width: 600px; margin: 0 auto; background: #f4f6f8; }
     
     /* ヘッダー周り */
     .header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    h1 { color: #2c3e50; font-size: 1.5em; margin: 0; }
+    h1 { color: #2c3e50; font-size: 1.3em; margin: 0; }
     .btn-rule-modal { background: #3b82f6; color: white; border: none; font-weight: bold; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; cursor: pointer; width: auto; margin: 0; }
     .btn-rule-modal:hover { background: #2563eb; }
+
+    /* SNS共有エリア */
+    .share-box { display: flex; gap: 8px; margin-bottom: 15px; }
+    .btn-share { padding: 8px; border-radius: 6px; border: none; font-weight: bold; color: white; font-size: 0.8em; cursor: pointer; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; flex: 1; margin: 0; }
+    .btn-share-line { background: #06c755; }
+    .btn-share-x { background: #000000; }
 
     .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 15px; }
     label { font-weight: bold; display: block; margin-top: 8px; }
@@ -127,6 +151,12 @@
   <div class="header-container">
     <h1>ゴルフ計算アプリ</h1>
     <button class="btn-rule-modal" onclick="openRuleModal()">❓ ルール説明</button>
+  </div>
+
+  <!-- LINE & X 共有ボタン -->
+  <div class="share-box">
+    <a class="btn-share btn-share-line" href="https://social-plugins.line.me/lineit/share?url=https://stoshin-byte.github.io/golf/" target="_blank">LINEで共有</a>
+    <a class="btn-share btn-share-x" href="https://twitter.com/intent/tweet?text=ゴルフのラスベガス・オリンピック計算アプリ！&url=https://stoshin-byte.github.io/golf/" target="_blank">Xで投稿</a>
   </div>
 
   <!-- 設定エリア -->
@@ -1121,6 +1151,13 @@
         html += `<td><button class="btn-edit-row" onclick="openEditModal(${idx})">編集</button></td>`;
         tr.innerHTML = html;
         historyBody.appendChild(tr);
+      });
+    }
+
+    // PWA ServiceWorker 登録処理
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Fail:', err));
       });
     }
 
