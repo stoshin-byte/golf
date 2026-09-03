@@ -87,7 +87,7 @@
     th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; }
     th { background: #eef2f5; }
     
-    /* 対戦ペア表示バッジ */
+    /* 対戦ペア表示バッジ（文字数・デザイン統一版） */
     .pair-info { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; line-height: 1.5; }
     
     .start-pair-preview {
@@ -106,9 +106,10 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      box-sizing: border-box;
     }
     .team-badge-b {
-      color: #7c2d12;
+      color: #9a3412;
       background: #ffedd5;
       padding: 6px 10px;
       border-radius: 6px;
@@ -117,6 +118,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      box-sizing: border-box;
     }
 
     /* PAR選択ボタン */
@@ -557,7 +559,7 @@
 
       <div class="rule-sec-title">1. ラスベガス（本線ルール）</div>
       <ul class="rule-list">
-        <li><b>ペア決定</b>: 前ホールの実打数（ハンディなし）が良い順（1〜4番手）に並び、<b>【青】1&amp;4番</b> vs <b>【オレンジ】2&amp;3番</b> で自動編成。</li>
+        <li><b>ペア決定</b>: 前ホールの実打数（ハンディなし）が良い順（1〜4番手）に並び、<b>【青チーム】1&amp;4番</b> vs <b>【赤チーム】2&amp;3番</b> で自動編成。</li>
         <li><b>スコア合成</b>: 良い打数を10の位に配置（例: 4打と5打 ➔ 45点）。数字が小さいチームの勝利。</li>
         <li><b>バーディ逆転</b>: 相手にバーディが出ると、自チームは<b>悪い方の打数が10の位に繰り上がり（逆転）</b>（例: 4打と5打 ➔ 54点）。</li>
         <li><b>両チームバーディ</b>: 両チームとも逆転処理が適用され、10の位同士で正しく計算。</li>
@@ -715,8 +717,8 @@
         document.getElementById('preview-pair').innerHTML = 
           `<div style="font-size:0.9em; margin-bottom:4px;">スタート対戦ペア</div>` +
           `<div class="start-pair-preview">` +
-          `  <div class="team-badge-a">青ペア: 👑1番 ${p1.name} &amp; 4️⃣4番 ${p4.name}</div>` +
-          `  <div class="team-badge-b">オレンジペア: 🥈2番 ${p2.name} &amp; 🥉3番 ${p3.name}</div>` +
+          `  <div class="team-badge-a">青チーム: 👑1番 ${p1.name} &amp; 4️⃣4番 ${p4.name}</div>` +
+          `  <div class="team-badge-b">赤チーム: 🥈2番 ${p2.name} &amp; 🥉3番 ${p3.name}</div>` +
           `</div>`;
       }
     }
@@ -919,8 +921,8 @@
 
       let pairText = 
         `<div class="start-pair-preview">` +
-        `  <div class="team-badge-a">青ペア: ${teamANames}</div>` +
-        `  <div class="team-badge-b">オレンジペア: ${teamBNames}</div>` +
+        `  <div class="team-badge-a">青チーム: ${teamANames}</div>` +
+        `  <div class="team-badge-b">赤チーム: ${teamBNames}</div>` +
         `</div>`;
 
       if (carriedTeamAIds) {
