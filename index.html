@@ -397,10 +397,10 @@
 
     <p style="font-size:0.85em; color:#666; margin-top:10px; margin-bottom:8px;">※打数と該当のボーナス/ペナルティを選択してください</p>
 
-    <!-- 打数カウンタ＆オリンピック・ペナタグ選択 -->
+    <!-- 打数カウンタ＆オリンピック・ペナタグ選択（初期登録順で固定表示） -->
     <div class="grid">
       <div class="player-card" id="card-0">
-        <div class="order-tag order-tag-1">👑 1番 (オナー)</div>
+        <div class="order-tag" id="order-badge-0">👑 1番 (オナー)</div>
         <div class="player-name-title" id="lbl-p1">Aさん</div>
         <div class="score-counter">
           <button class="btn-cnt" onclick="changeScore(0, -1)">-</button>
@@ -427,7 +427,7 @@
       </div>
       
       <div class="player-card" id="card-1">
-        <div class="order-tag order-tag-2">🥈 2番打者</div>
+        <div class="order-tag" id="order-badge-1">🥈 2番打者</div>
         <div class="player-name-title" id="lbl-p2">Bさん</div>
         <div class="score-counter">
           <button class="btn-cnt" onclick="changeScore(1, -1)">-</button>
@@ -454,7 +454,7 @@
       </div>
       
       <div class="player-card" id="card-2">
-        <div class="order-tag order-tag-3">🥉 3番打者</div>
+        <div class="order-tag" id="order-badge-2">🥉 3番打者</div>
         <div class="player-name-title" id="lbl-p3">Cさん</div>
         <div class="score-counter">
           <button class="btn-cnt" onclick="changeScore(2, -1)">-</button>
@@ -481,7 +481,7 @@
       </div>
       
       <div class="player-card" id="card-3">
-        <div class="order-tag order-tag-4">4️⃣ 4番打者</div>
+        <div class="order-tag" id="order-badge-3">4️⃣ 4番打者</div>
         <div class="player-name-title" id="lbl-p4">Dさん</div>
         <div class="score-counter">
           <button class="btn-cnt" onclick="changeScore(3, -1)">-</button>
@@ -724,7 +724,6 @@
     }
 
     function getRegisteredPlayers() {
-      // 画面の登録入力枠（ID 1〜4）のまま順番を固定保持
       const pData = [
         { 
           id: 1, 
@@ -779,7 +778,6 @@
       }
 
       initialPlayers = JSON.parse(JSON.stringify(regPlayers));
-      // ゲームスタート時のオナー打順（1〜4番手）で並び替え
       playerOrder = [...regPlayers].sort((a, b) => a.order - b.order);
 
       document.getElementById('setup-section').style.display = 'none';
@@ -900,22 +898,38 @@
       document.getElementById('hole-title').innerText = `${currentHole}番ホール`;
       document.getElementById('carry-display').value = `${carryOverPoints} 点`;
 
-      document.getElementById('lbl-p1').innerText = playerOrder[0].name;
-      document.getElementById('lbl-p2').innerText = playerOrder[1].name;
-      document.getElementById('lbl-p3').innerText = playerOrder[2].name;
-      document.getElementById('lbl-p4').innerText = playerOrder[3].name;
-
       const { teamA, teamB } = getCurrentTeams();
 
-      for (let i = 0; i < 4; i++) {
+      // 各ホールでの打順（オナー等）テキスト定義
+      const orderBadgeTexts = [
+        { text: '👑 1番 (オナー)', class: 'order-tag-1' },
+        { text: '🥈 2番打者', class: 'order-tag-2' },
+        { text: '🥉 3番打者', class: 'order-tag-3' },
+        { text: '4️⃣ 4番打者', class: 'order-tag-4' }
+      ];
+
+      // カード表示位置（0〜3）は initialPlayers（初期登録順）で完全固定
+      initialPlayers.forEach((p, i) => {
+        // 名前設定
+        document.getElementById(`lbl-p${i+1}`).innerText = p.name;
+
+        // 打順判定 (playerOrder 内での現在のインデックス)
+        const orderIdx = playerOrder.findIndex(po => po.id === p.id);
+        const badgeElem = document.getElementById(`order-badge-${i}`);
+        if (badgeElem && orderIdx !== -1) {
+          badgeElem.className = `order-tag ${orderBadgeTexts[orderIdx].class}`;
+          badgeElem.innerText = orderBadgeTexts[orderIdx].text;
+        }
+
+        // チーム判定 (チームA: 青 / チームB: 赤)
         const card = document.getElementById(`card-${i}`);
         card.className = 'player-card';
-        if (teamA.some(t => t.index === i)) {
+        if (teamA.some(t => t.player.id === p.id)) {
           card.classList.add('team-a-box');
         } else {
           card.classList.add('team-b-box');
         }
-      }
+      });
 
       const teamANames = teamA.map(t => t.player.name).join(' & ');
       const teamBNames = teamB.map(t => t.player.name).join(' & ');
@@ -953,7 +967,8 @@
         container.style.display = 'block';
         select.innerHTML = '<option value="-1">なし（該当者なし）</option>';
         
-        playerOrder.forEach((p) => {
+        // チップ選択枠も初期登録順（initialPlayers）で表示
+        initialPlayers.forEach((p) => {
           select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
         });
 
@@ -1003,8 +1018,9 @@
         chipWinnerId: -1
       };
 
+      // 固定配置されているカード(0〜3)からスコアとイベントを正しく取得
       for (let i = 0; i < 4; i++) {
-        const pId = playerOrder[i].id;
+        const pId = initialPlayers[i].id;
         currentLog.scores[pId] = currentScores[i];
         currentLog.events[pId] = { ...playerEvents[i] };
       }
