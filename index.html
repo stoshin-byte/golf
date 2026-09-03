@@ -181,10 +181,10 @@
 
     <label>ハンディ適用条件</label>
     <select id="hdcpRule">
-      <option value="par45">PAR 4, 5 のみ適用</option>
-      <option value="par4">PAR 4 のみ適用</option>
-      <option value="everyone">全ホール適用 (エブリワン)</option>
       <option value="none">ハンディなし</option>
+      <option value="par4">PAR 4 のみ適用</option>
+      <option value="par45">PAR 4, 5 のみ適用</option>
+      <option value="everyone">全ホール適用 (エブリワン)</option>
     </select>
 
     <button class="btn-submit" onclick="startGame()">ゲーム開始</button>
@@ -391,7 +391,7 @@
 
       <div class="rule-sec-title">2. ハンディキャップ（HDCP）</div>
       <ul class="rule-list">
-        <li>スタート時に設定（PAR4,5のみ / PAR4のみ / 全ホール / ハンディなし）。</li>
+        <li>スタート時に設定（ハンディなし / PAR4のみ / PAR4,5のみ / 全ホール）。</li>
         <li>チームスコア計算時のみ打数から減算。次ホールの打順決め（オナー順）には影響しません。</li>
       </ul>
 
@@ -432,7 +432,7 @@
 
   <script>
     let playerOrder = [];
-    let initialPlayers = []; // 初期登録状態（ID基準）
+    let initialPlayers = [];
     let currentHole = 1;
     let carryOverPoints = 0;
     let currentPar = 4;
@@ -814,7 +814,6 @@
       updateHoleUI();
     }
 
-    // 全ホールのスコアを最初から一括再計算するコア処理
     function recalculateAll() {
       let pMap = {};
       initialPlayers.forEach(p => {
@@ -829,7 +828,6 @@
       const rule = document.getElementById('hdcpRule').value;
 
       holeLogs.forEach(log => {
-        // チーム決定
         let teamA = [];
         let teamB = [];
 
@@ -982,7 +980,6 @@
       }
     }
 
-    // 履歴修正モーダルの表示・処理
     function openEditModal(index) {
       editingHoleIndex = index;
       const log = holeLogs[index];
